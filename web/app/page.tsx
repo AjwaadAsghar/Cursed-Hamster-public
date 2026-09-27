@@ -1,7 +1,48 @@
 import Link from "next/link";
 import FloatingEmojis from "./components/FloatingEmojis";
 import PrefetchModels from "./components/PrefetchModels";
-import { GESTURE_GUIDE } from "./lib/gestures";
+import JsonLd from "./components/JsonLd";
+import SiteFooter from "./components/SiteFooter";
+import { HAMSTERS, hamsterPath } from "./lib/hamsters";
+
+const HAMSTER_COUNT = HAMSTERS.length;
+
+const FAQ = [
+  {
+    q: "What is Cursed Hamster?",
+    a: `Cursed Hamster is a free hamster meme webcam filter. Turn on your camera, pull a face or make a gesture, and the matching cursed hamster meme copies you live. There are ${HAMSTER_COUNT} hamsters to find, from the poker face hamster to the finger gun hamster.`,
+  },
+  {
+    q: "Is Cursed Hamster free?",
+    a: "Yes. It's completely free, with no sign-up and no app to install. It works right in your web browser.",
+  },
+  {
+    q: "Is my camera recorded or uploaded anywhere?",
+    a: "No. All the face, hand and body tracking runs locally in your browser. Your camera feed never leaves your device. Photos and clips are only made when you press the button, and they're saved on your device.",
+  },
+  {
+    q: "Does it work on my phone?",
+    a: "Yes. It works in modern browsers on iPhone, Android, laptops and desktops. Just allow camera access when your browser asks.",
+  },
+  {
+    q: "Can I share my hamster?",
+    a: "Yes. Snap a photo or record a 5 second clip of you next to your hamster, then share it straight to Instagram, TikTok or your group chat.",
+  },
+  {
+    q: "Why isn't the hamster changing?",
+    a: "Make sure you're well lit and your hands are in frame, then hold the pose for about a second. The gesture list on the camera page shows exactly how to do each one.",
+  },
+];
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
+};
 
 const POLAROIDS = [
   { src: "/memes/hug.jpg", top: "5%", left: "3%", rotate: -12, size: 132 },
@@ -21,6 +62,8 @@ const STEPS = [
 
 export default function Home() {
   return (
+    <>
+    <JsonLd data={faqJsonLd} />
     <div
       className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-16 text-center"
       style={{
@@ -63,7 +106,7 @@ export default function Home() {
 
       <div className="relative z-10 flex flex-col items-center">
         <span className="rounded-full bg-white/60 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-pink-700 shadow-sm backdrop-blur">
-          {GESTURE_GUIDE.length} gestures · {GESTURE_GUIDE.length} hamsters
+          {HAMSTER_COUNT} gestures · {HAMSTER_COUNT} hamsters
         </span>
 
         <div className="relative mt-6">
@@ -97,6 +140,7 @@ export default function Home() {
         <p className="mt-3 max-w-sm text-base font-medium text-pink-950/75">
           Point your webcam at yourself and pull faces. Become the hamster.
         </p>
+        <p className="mt-1 text-sm font-semibold text-pink-800/70">The hamster meme webcam filter</p>
 
         <ol className="mt-7 flex flex-wrap justify-center gap-2">
           {STEPS.map((s, i) => (
@@ -129,7 +173,7 @@ export default function Home() {
             <img
               key={src}
               src={src}
-              alt=""
+              alt="Cursed hamster meme"
               width={64}
               height={64}
               className="rounded-xl bg-white p-1 shadow-lg"
@@ -144,5 +188,113 @@ export default function Home() {
         </div>
       </div>
     </div>
+
+    <main className="relative w-full bg-pink-50/95 px-6 py-16">
+      <div className="mx-auto flex max-w-5xl flex-col gap-16">
+        <section className="mx-auto max-w-3xl text-center">
+          <h2 className="font-display text-3xl font-bold text-pink-900 sm:text-4xl">
+            What is Cursed Hamster?
+          </h2>
+          <p className="mt-4 text-lg leading-relaxed text-zinc-700">
+            Cursed Hamster is a free <strong>hamster meme webcam filter</strong>. Instead of putting a
+            filter on your face, it finds the <strong>cursed hamster meme</strong> that matches what
+            you&apos;re doing: give a thumbs up and you get the thumbs up hamster, make finger guns and
+            you become the finger gun hamster, look away and the side eye hamster judges you back.
+            There are {HAMSTER_COUNT} hamsters to collect. Can you become them all?
+          </p>
+        </section>
+
+        <section aria-labelledby="all-hamsters">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <h2 id="all-hamsters" className="font-display text-3xl font-bold text-pink-900">
+              Every hamster meme you can become
+            </h2>
+            <Link href="/hamsters" className="text-sm font-semibold text-pink-700 underline hover:text-pink-500">
+              See all hamster memes →
+            </Link>
+          </div>
+          <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+            {HAMSTERS.map((h) => (
+              <li key={h.slug}>
+                <Link
+                  href={hamsterPath(h)}
+                  className="group flex flex-col items-center gap-1.5 rounded-2xl bg-white p-2 text-center shadow-sm transition-transform hover:-translate-y-1 hover:shadow-md"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={h.image}
+                    alt={`${h.name} meme`}
+                    width={120}
+                    height={120}
+                    loading="lazy"
+                    className="aspect-square w-full rounded-xl object-cover"
+                  />
+                  <span className="text-xs font-semibold leading-tight text-pink-900 group-hover:text-pink-600">
+                    {h.name}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section aria-labelledby="how-it-works" className="grid gap-4 sm:grid-cols-3">
+          <h2 id="how-it-works" className="font-display text-3xl font-bold text-pink-900 sm:col-span-3">
+            How the hamster filter works
+          </h2>
+          {[
+            {
+              t: "1. Allow your camera",
+              d: "Open the hamster filter and let your browser use your webcam. Nothing is uploaded; it all runs on your device.",
+            },
+            {
+              t: "2. Pull a face or gesture",
+              d: "Thumbs up, finger guns, hands on your cheeks, a flex, a side eye. Hold it for a second.",
+            },
+            {
+              t: "3. Become the hamster",
+              d: "The matching hamster meme appears next to you live. Snap a photo or a clip and share it.",
+            },
+          ].map((step) => (
+            <div key={step.t} className="rounded-2xl bg-white p-5 shadow-sm">
+              <h3 className="font-display text-lg font-semibold text-pink-800">{step.t}</h3>
+              <p className="mt-1.5 text-[15px] leading-relaxed text-zinc-700">{step.d}</p>
+            </div>
+          ))}
+        </section>
+
+        <section aria-labelledby="faq" className="mx-auto w-full max-w-3xl">
+          <h2 id="faq" className="font-display text-3xl font-bold text-pink-900">
+            Frequently asked questions
+          </h2>
+          <div className="mt-5 flex flex-col gap-3">
+            {FAQ.map((f) => (
+              <details key={f.q} className="group rounded-2xl bg-white p-5 shadow-sm open:shadow-md">
+                <summary className="cursor-pointer list-none font-semibold text-pink-900 marker:hidden">
+                  <span className="flex items-center justify-between gap-3">
+                    {f.q}
+                    <span className="text-pink-400 transition-transform group-open:rotate-45">+</span>
+                  </span>
+                </summary>
+                <p className="mt-3 text-[15px] leading-relaxed text-zinc-700">{f.a}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+
+        <section className="text-center">
+          <h2 className="font-display text-3xl font-bold text-pink-900">Ready to become the hamster?</h2>
+          <Link
+            href="/camera"
+            className="btn-shine font-display mt-6 inline-block rounded-full px-10 py-4 text-xl font-semibold text-white shadow-xl shadow-pink-600/30 transition-transform hover:scale-105 active:scale-95"
+            style={{ background: "linear-gradient(90deg, #ff6fb0, #ff3d94)" }}
+          >
+            Start the camera 📸
+          </Link>
+        </section>
+      </div>
+    </main>
+    <SiteFooter />
+    </>
   );
 }

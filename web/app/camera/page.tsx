@@ -573,9 +573,10 @@ export default function CameraPage() {
                 }`}
               />
             </span>
-            <span className="font-display truncate text-[17px] font-semibold tracking-tight text-pink-100">
-              Cursed Hamster 🐹
-            </span>
+            <h1 className="font-display truncate text-[17px] font-semibold tracking-tight text-pink-100">
+              Cursed Hamster <span aria-hidden="true">🐹</span>
+              <span className="sr-only"> hamster meme webcam filter</span>
+            </h1>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <span className="hidden text-[13px] font-semibold text-pink-200/70 sm:inline">gesture:</span>

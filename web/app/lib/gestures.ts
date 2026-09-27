@@ -62,7 +62,7 @@ export const MEMES: Record<string, string> = {
   thumbs_up: "/memes/thumbs_up.jpg",
   thumbs_down: "/memes/thumbs_down.jpg",
   side_eye: "/memes/side_eye.jpg",
-  fist_by_head: "/memes/fist_by_head.webp",
+  fist_by_head: "/memes/fist_by_head.jpg",
   two_hands: "/memes/two_hands.jpg",
   glasses: "/memes/glasses.jpg",
   bicep: "/memes/bicep.jpg",

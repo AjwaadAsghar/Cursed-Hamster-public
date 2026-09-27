@@ -1,6 +1,16 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fredoka, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import JsonLd from "./components/JsonLd";
+import { pageMetadata } from "./lib/seo";
+import {
+  SITE_DESCRIPTION,
+  SITE_KEYWORDS,
+  SITE_NAME,
+  SITE_TITLE,
+  SITE_URL,
+  absoluteUrl,
+} from "./lib/site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,19 +29,57 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://hammy-hamster-webcam-public.vercel.app"),
-  title: "Cursed Hamster",
-  description: "Pull faces and gestures at your webcam - a hamster meme reacts live.",
-  openGraph: {
-    title: "Cursed Hamster",
-    description: "Pull faces and gestures at your webcam - a hamster meme reacts live.",
-    type: "website",
+  ...pageMetadata({
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    path: "/",
+    absoluteTitle: true,
+    keywords: SITE_KEYWORDS,
+  }),
+  metadataBase: new URL(SITE_URL),
+  title: { default: SITE_TITLE, template: `%s | ${SITE_NAME}` },
+  applicationName: SITE_NAME,
+  category: "entertainment",
+  creator: "Ajwaad",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
   },
-  twitter: {
-    card: "summary_large_image",
-    title: "Cursed Hamster",
-    description: "Pull faces and gestures at your webcam - a hamster meme reacts live.",
-  },
+  formatDetection: { telephone: false, email: false, address: false },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#ff8fc4",
+};
+
+// Site-wide structured data: who we are and that this is a free web app.
+const siteJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": absoluteUrl("/#website"),
+      name: SITE_NAME,
+      alternateName: ["Cursed Hamster Meme", "Hamster Meme Filter"],
+      url: absoluteUrl("/"),
+      description: SITE_DESCRIPTION,
+      inLanguage: "en",
+    },
+    {
+      "@type": "WebApplication",
+      "@id": absoluteUrl("/#app"),
+      name: `${SITE_NAME}: Hamster Meme Webcam Filter`,
+      url: absoluteUrl("/camera"),
+      applicationCategory: "EntertainmentApplication",
+      operatingSystem: "Any (web browser)",
+      browserRequirements: "Requires a webcam and a modern browser with JavaScript.",
+      description: SITE_DESCRIPTION,
+      isAccessibleForFree: true,
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      image: absoluteUrl("/opengraph-image"),
+    },
+  ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -40,7 +88,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${fredoka.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <JsonLd data={siteJsonLd} />
+        {children}
+      </body>
     </html>
   );
 }
