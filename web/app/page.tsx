@@ -1,5 +1,6 @@
 import Link from "next/link";
 import FloatingEmojis from "./components/FloatingEmojis";
+import PrefetchModels from "./components/PrefetchModels";
 
 const POLAROIDS = [
   { src: "/memes/hug.jpg", top: "5%", left: "3%", rotate: -12, size: 132 },
@@ -27,6 +28,7 @@ export default function Home() {
       }}
     >
       <FloatingEmojis />
+      <PrefetchModels />
 
       {/* Soft glow behind the hero */}
       <div

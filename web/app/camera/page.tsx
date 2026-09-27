@@ -16,6 +16,7 @@ import {
   type Point,
 } from "../lib/gestures";
 import FloatingEmojis from "../components/FloatingEmojis";
+import { MODEL_URLS, WASM_URL, fetchModel } from "../lib/assets";
 import ShareModal, { type ShareResult } from "../components/ShareModal";
 import {
   CARD_ASPECT,
@@ -33,7 +34,6 @@ import {
   subscribeFound,
 } from "../lib/collection";
 
-const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
 const PANEL = 480; // meme/cam panel size (px)
 const VOTE_WINDOW = 12;
 const VOTE_MAJORITY = 7;
@@ -70,7 +70,8 @@ export default function CameraPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [debugOn, setDebugOn] = useState(true);
   const [gesture, setGesture] = useState("default");
-  const [loadStep, setLoadStep] = useState("Waking up the hamster…");
+  const [loadStep, setLoadStep] = useState("Asking for your camera…");
+  const [cameraOn, setCameraOn] = useState(false);
   const guideListRef = useRef<HTMLDivElement>(null);
   const debugOnRef = useRef(debugOn);
   useEffect(() => {
@@ -100,43 +101,29 @@ export default function CameraPage() {
 
     async function setup() {
       try {
-        const vision = await FilesetResolver.forVisionTasks(WASM_URL);
-
-        // CPU delegates: running three GPU/WebGL-backed models concurrently in
-        // one tab makes them fight over WebGL contexts (observed as repeated
-        // "Graph finished closing" churn and an uncaught crash from inside
-        // the vision library). CPU delegates avoid that entirely.
-        hand = await HandLandmarker.createFromOptions(vision, {
-          baseOptions: { modelAssetPath: "/models/hand_landmarker.task", delegate: "CPU" },
-          runningMode: "VIDEO",
-          numHands: 2,
-          minHandDetectionConfidence: 0.6,
-          minTrackingConfidence: 0.6,
-        });
-
-        setLoadStep("Teaching it what faces look like…");
-        face = await FaceLandmarker.createFromOptions(vision, {
-          baseOptions: { modelAssetPath: "/models/face_landmarker.task", delegate: "CPU" },
-          runningMode: "VIDEO",
-          numFaces: 1,
-          minFaceDetectionConfidence: 0.6,
-          minTrackingConfidence: 0.6,
-          outputFacialTransformationMatrixes: true,
-        });
-
-        setLoadStep("Stretching its little arms…");
-        pose = await PoseLandmarker.createFromOptions(vision, {
-          baseOptions: { modelAssetPath: "/models/pose_landmarker.task", delegate: "CPU" },
-          runningMode: "VIDEO",
-          numPoses: 1,
-          minPoseDetectionConfidence: 0.5,
-          minTrackingConfidence: 0.5,
-        });
+        // Kick everything off at once instead of one after another: the
+        // camera prompt, the three model downloads and the WASM runtime all
+        // load in parallel. Only the hand model gates the "ready" state -
+        // face and pose plug in as soon as they finish, and until then the
+        // classifier just sees "no face / no pose", same as when you're out
+        // of frame.
+        const visionP = FilesetResolver.forVisionTasks(WASM_URL);
+        // Start the WASM download now; the task constructors below fetch the
+        // same URL and get it from the HTTP cache.
+        visionP
+          .then((v) => Promise.all([fetch(v.wasmLoaderPath), fetch(v.wasmBinaryPath)]))
+          .catch(() => {});
+        // Face/pose wait for the hand model so they don't steal bandwidth
+        // from the one download that actually gates startup.
+        const handBufP = fetchModel(MODEL_URLS.hand);
+        const afterHand = handBufP.catch(() => {});
+        const faceBufP = afterHand.then(() => fetchModel(MODEL_URLS.face));
+        const poseBufP = afterHand.then(() => fetchModel(MODEL_URLS.pose));
+        for (const p of [handBufP, faceBufP, poseBufP]) p.catch(() => {});
 
         // Lower capture resolution than the display panel needs: fewer
         // pixels per frame means noticeably cheaper CPU-delegate inference,
         // with no visible quality loss once scaled up to PANEL size.
-        setLoadStep("Asking for your camera…");
         stream = await navigator.mediaDevices.getUserMedia({
           video: { width: { ideal: 480 }, height: { ideal: 480 } },
           audio: false,
@@ -146,9 +133,58 @@ export default function CameraPage() {
         const video = videoRef.current!;
         video.srcObject = stream;
         await video.play();
+        if (cancelled) return;
+        setCameraOn(true);
+        setLoadStep("Waking up the hamster…");
 
+        const vision = await visionP;
+
+        // CPU delegates: running three GPU/WebGL-backed models concurrently in
+        // one tab makes them fight over WebGL contexts (observed as repeated
+        // "Graph finished closing" churn and an uncaught crash from inside
+        // the vision library). CPU delegates avoid that entirely.
+        hand = await HandLandmarker.createFromOptions(vision, {
+          baseOptions: { modelAssetBuffer: await handBufP, delegate: "CPU" },
+          runningMode: "VIDEO",
+          numHands: 2,
+          minHandDetectionConfidence: 0.6,
+          minTrackingConfidence: 0.6,
+        });
         if (cancelled) return;
         setStatus("ready");
+
+        faceBufP
+          .then((buf) =>
+            FaceLandmarker.createFromOptions(vision, {
+              baseOptions: { modelAssetBuffer: buf, delegate: "CPU" },
+              runningMode: "VIDEO",
+              numFaces: 1,
+              minFaceDetectionConfidence: 0.6,
+              minTrackingConfidence: 0.6,
+              outputFacialTransformationMatrixes: true,
+            })
+          )
+          .then((f) => {
+            if (cancelled) f.close();
+            else face = f;
+          })
+          .catch((err) => console.error("face model failed", err));
+
+        poseBufP
+          .then((buf) =>
+            PoseLandmarker.createFromOptions(vision, {
+              baseOptions: { modelAssetBuffer: buf, delegate: "CPU" },
+              runningMode: "VIDEO",
+              numPoses: 1,
+              minPoseDetectionConfidence: 0.5,
+              minTrackingConfidence: 0.5,
+            })
+          )
+          .then((p) => {
+            if (cancelled) p.close();
+            else pose = p;
+          })
+          .catch((err) => console.error("pose model failed", err));
 
         const votes: string[] = [];
         let stableGesture = "default";
@@ -176,8 +212,8 @@ export default function CameraPage() {
           const handResult = hand!.detectForVideo(video, now);
           const handsLandmarks = (handResult.landmarks ?? []) as Point[][];
 
-          if (frameCount % FACE_EVERY_N === 0) {
-            const faceResult = face!.detectForVideo(video, now);
+          if (face && frameCount % FACE_EVERY_N === 0) {
+            const faceResult = face.detectForVideo(video, now);
             lastFaceLandmarks = (faceResult.faceLandmarks ?? []) as Point[][];
             lastFaceMatrices = faceResult.facialTransformationMatrixes
               ? faceResult.facialTransformationMatrixes.map((m) => {
@@ -194,8 +230,8 @@ export default function CameraPage() {
               : null;
           }
 
-          if (frameCount % POSE_EVERY_N === 0) {
-            const poseResult = pose!.detectForVideo(video, now);
+          if (pose && frameCount % POSE_EVERY_N === 0) {
+            const poseResult = pose.detectForVideo(video, now);
             lastPoseLandmarks = (poseResult.landmarks ?? []) as Point[][];
           }
 
@@ -617,7 +653,11 @@ export default function CameraPage() {
             )}
             {flash && <div className="pointer-events-none absolute inset-0 bg-white" />}
             {status === "loading" && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center">
+              <div
+                className={`absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center ${
+                  cameraOn ? "bg-black/40" : ""
+                }`}
+              >
                 <span className="text-5xl" style={{ animation: "wobble 1.2s ease-in-out infinite" }}>
                   🐹
                 </span>
