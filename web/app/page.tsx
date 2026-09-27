@@ -92,7 +92,7 @@ export default function Home() {
           Cursed Hamster
         </h1>
         <p className="mt-3 max-w-sm text-base font-medium text-pink-950/75">
-          Point your webcam at yourself and pull faces. A hamster meme reacts live.
+          Point your webcam at yourself and pull faces. Become the hamster.
         </p>
 
         <ol className="mt-7 flex flex-wrap justify-center gap-2">
