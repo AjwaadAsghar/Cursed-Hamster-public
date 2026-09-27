@@ -45,8 +45,12 @@ export default function CameraPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [debugOn, setDebugOn] = useState(true);
   const [gesture, setGesture] = useState("default");
+  const [loadStep, setLoadStep] = useState("Waking up the hamster…");
+  const guideListRef = useRef<HTMLDivElement>(null);
   const debugOnRef = useRef(debugOn);
-  debugOnRef.current = debugOn;
+  useEffect(() => {
+    debugOnRef.current = debugOn;
+  }, [debugOn]);
 
   useEffect(() => {
     let cancelled = false;
@@ -72,6 +76,7 @@ export default function CameraPage() {
           minTrackingConfidence: 0.6,
         });
 
+        setLoadStep("Teaching it what faces look like…");
         face = await FaceLandmarker.createFromOptions(vision, {
           baseOptions: { modelAssetPath: "/models/face_landmarker.task", delegate: "CPU" },
           runningMode: "VIDEO",
@@ -81,6 +86,7 @@ export default function CameraPage() {
           outputFacialTransformationMatrixes: true,
         });
 
+        setLoadStep("Stretching its little arms…");
         pose = await PoseLandmarker.createFromOptions(vision, {
           baseOptions: { modelAssetPath: "/models/pose_landmarker.task", delegate: "CPU" },
           runningMode: "VIDEO",
@@ -92,6 +98,7 @@ export default function CameraPage() {
         // Lower capture resolution than the display panel needs: fewer
         // pixels per frame means noticeably cheaper CPU-delegate inference,
         // with no visible quality loss once scaled up to PANEL size.
+        setLoadStep("Asking for your camera…");
         stream = await navigator.mediaDevices.getUserMedia({
           video: { width: { ideal: 480 }, height: { ideal: 480 } },
           audio: false,
@@ -215,11 +222,32 @@ export default function CameraPage() {
     };
   }, []);
 
+  // Warm the browser cache so switching memes never flashes an empty panel.
+  useEffect(() => {
+    for (const src of Object.values(MEMES)) {
+      const img = new Image();
+      img.src = src;
+    }
+  }, []);
+
+  // Keep the active gesture visible in the guide list without scrolling the
+  // page itself (scrollIntoView would also scroll the window on mobile).
+  useEffect(() => {
+    const list = guideListRef.current;
+    const row = list?.querySelector<HTMLElement>(`[data-key="${gesture}"]`);
+    if (!list || !row) return;
+    const top = row.offsetTop;
+    const bottom = top + row.offsetHeight;
+    if (top < list.scrollTop || bottom > list.scrollTop + list.clientHeight) {
+      list.scrollTo({ top: top - (list.clientHeight - row.offsetHeight) / 2, behavior: "smooth" });
+    }
+  }, [gesture]);
+
   const label = displayGestureName(gesture);
 
   return (
     <div
-      className="relative flex min-h-screen flex-col items-center gap-4 overflow-x-hidden p-4"
+      className="relative flex min-h-screen flex-col items-center gap-4 overflow-x-hidden p-4 sm:p-6"
       style={{
         background:
           "linear-gradient(160deg, #ffd6e8 0%, #ffb6d5 35%, #ff8fc4 70%, #ff6fb0 100%)",
@@ -227,53 +255,87 @@ export default function CameraPage() {
     >
       <FloatingEmojis />
 
-      <Link
-        href="/"
-        className="relative z-10 flex items-center gap-1 rounded-full bg-white/50 px-4 py-1.5 text-sm font-semibold text-pink-900/80 shadow-sm backdrop-blur transition-colors hover:bg-white/80 hover:text-pink-900"
-      >
-        &larr; back
-      </Link>
+      <div className="relative z-10 flex w-full max-w-[962px] items-center justify-between gap-2 lg:max-w-[1318px]">
+        <Link
+          href="/"
+          className="flex items-center gap-1 rounded-full bg-white/55 px-4 py-1.5 text-sm font-semibold text-pink-900/80 shadow-sm backdrop-blur transition-colors hover:bg-white/80 hover:text-pink-900"
+        >
+          &larr; back
+        </Link>
+        <button
+          type="button"
+          onClick={() => setDebugOn((d) => !d)}
+          aria-pressed={debugOn}
+          className="flex items-center gap-2 rounded-full bg-white/55 py-1.5 pl-2 pr-4 text-sm font-semibold text-pink-900/80 shadow-sm backdrop-blur transition-colors hover:bg-white/80"
+          title="Shortcut: press D"
+        >
+          <span
+            className={`relative h-5 w-9 rounded-full transition-colors ${
+              debugOn ? "bg-pink-500" : "bg-zinc-300"
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${
+                debugOn ? "left-[18px]" : "left-0.5"
+              }`}
+            />
+          </span>
+          tracking lines
+        </button>
+      </div>
 
       {status === "error" && (
-        <div className="relative z-10 max-w-md rounded-xl bg-white/90 px-5 py-4 text-center text-sm font-medium text-red-700 shadow-lg backdrop-blur">
-          Couldn&apos;t start the camera: {errorMsg}. Camera access needs HTTPS (or localhost)
-          and browser permission.
-        </div>
-      )}
-      {status === "loading" && (
-        <div className="relative z-10 flex items-center gap-3 rounded-full bg-white/50 px-5 py-2.5 shadow-sm backdrop-blur">
-          <span className="h-3 w-3 animate-ping rounded-full bg-pink-500" />
-          <span className="text-sm font-semibold text-pink-900/80">
-            Loading models and camera…
-          </span>
+        <div className="relative z-10 flex max-w-md flex-col items-center gap-3 rounded-2xl bg-white/90 px-6 py-5 text-center shadow-lg backdrop-blur">
+          <span className="text-4xl">🙈</span>
+          <p className="font-display text-lg font-semibold text-pink-900">
+            The hamster can&apos;t see you
+          </p>
+          <p className="text-sm text-zinc-600">
+            {errorMsg}. Make sure you allowed camera access for this site, and that no other app
+            is using the camera.
+          </p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-1 rounded-full px-5 py-2 text-sm font-bold text-white shadow-md transition-transform hover:scale-105 active:scale-95"
+            style={{ background: "linear-gradient(90deg, #ff6fb0, #ff3d94)" }}
+          >
+            Try again
+          </button>
         </div>
       )}
 
-      <div className="relative z-10 flex w-full max-w-[962px] flex-col items-center gap-4 lg:max-w-none lg:flex-row lg:items-start">
+      <div className="relative z-10 flex w-full max-w-[962px] flex-col items-center gap-4 lg:max-w-none lg:flex-row lg:items-start lg:justify-center">
       <div
-        className="w-full overflow-hidden rounded-xl shadow-2xl ring-4 ring-white/60"
+        className="w-full overflow-hidden rounded-2xl shadow-2xl shadow-pink-900/20 ring-4 ring-white/70"
         style={{ maxWidth: PANEL * 2 + 2 }}
       >
         {/* Header */}
         <div
-          className="flex items-center justify-between px-4"
+          className="flex items-center justify-between gap-2 px-4"
           style={{
-            height: 48,
-            background: "linear-gradient(90deg, #1f1a1a, #2a2020)",
+            height: 52,
+            background: "linear-gradient(90deg, #2a1520, #3a1a2a)",
             borderBottom: "1px solid rgba(255,150,200,0.25)",
           }}
         >
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5 shrink-0">
+              {status === "ready" && (
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              )}
+              <span
+                className={`relative inline-flex h-2.5 w-2.5 rounded-full ${
+                  status === "ready" ? "bg-emerald-400" : status === "error" ? "bg-red-400" : "bg-amber-300"
+                }`}
+              />
             </span>
-            <span className="text-[15px] font-semibold tracking-tight text-zinc-100">
+            <span className="font-display truncate text-[17px] font-semibold tracking-tight text-pink-100">
               Cursed Hamster 🐹
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[13px] font-semibold text-zinc-300">gesture:</span>
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="hidden text-[13px] font-semibold text-pink-200/70 sm:inline">gesture:</span>
             <span
               key={gesture}
               className="animate-[pop_0.25s_ease-out] rounded-full px-3.5 py-1.5 text-[13px] font-bold shadow-sm"
@@ -287,14 +349,17 @@ export default function CameraPage() {
         {/* Meme on top, camera below - stacked on mobile; side by side from
             sm upward. */}
         <div className="flex flex-col sm:flex-row">
-          <img
-            src={MEMES[gesture] ?? MEMES.default}
-            alt={label}
-            className="aspect-square w-full object-cover sm:w-1/2"
-            style={{ background: "#333" }}
-          />
-          <div className="h-[2px] w-full sm:h-auto sm:w-[2px]" style={{ background: "rgb(55,50,50)" }} />
-          <div className="relative aspect-square w-full sm:w-1/2">
+          <div className="aspect-square w-full overflow-hidden sm:w-1/2" style={{ background: "#2a1520" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              key={gesture}
+              src={MEMES[gesture] ?? MEMES.default}
+              alt={label}
+              className="h-full w-full animate-[meme-in_0.25s_ease-out] object-cover"
+            />
+          </div>
+          <div className="h-[3px] w-full sm:h-auto sm:w-[3px]" style={{ background: "#ffb6d5" }} />
+          <div className="relative aspect-square w-full sm:w-1/2" style={{ background: "#1a1015" }}>
             <video
               ref={videoRef}
               playsInline
@@ -302,7 +367,6 @@ export default function CameraPage() {
               className="h-full w-full object-cover"
               style={{
                 transform: "scaleX(-1)",
-                background: "#111",
               }}
             />
             {/* Hand-landmark overlay, mirrored the same way as the video so
@@ -319,60 +383,72 @@ export default function CameraPage() {
                 pointerEvents: "none",
               }}
             />
+            {status === "loading" && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center">
+                <span className="text-5xl" style={{ animation: "wobble 1.2s ease-in-out infinite" }}>
+                  🐹
+                </span>
+                <span className="font-display text-lg font-semibold text-pink-100">{loadStep}</span>
+                <span className="text-xs text-pink-200/60">first load can take a few seconds</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
         {/* Gesture guide */}
         <div
-          className="flex w-full flex-col overflow-hidden rounded-xl bg-white/90 shadow-2xl ring-4 ring-white/60 backdrop-blur lg:w-auto"
-          style={{ maxWidth: PANEL, maxHeight: PANEL + 48 }}
+          className="flex w-full flex-col overflow-hidden rounded-2xl bg-white/90 shadow-2xl shadow-pink-900/20 ring-4 ring-white/70 backdrop-blur lg:w-[340px]"
+          style={{ maxWidth: PANEL, maxHeight: PANEL + 52 }}
         >
           <div
             className="flex shrink-0 items-center gap-2 px-4"
-            style={{ height: 48, background: "linear-gradient(90deg, #ff6fb0, #ff9ecb)" }}
+            style={{ height: 52, background: "linear-gradient(90deg, #ff6fb0, #ff9ecb)" }}
           >
             <span className="text-lg">🙌</span>
-            <span className="text-[15px] font-bold text-white">Gestures to try</span>
+            <span className="font-display text-[17px] font-semibold text-white">Gestures to try</span>
+            <span className="ml-auto rounded-full bg-white/30 px-2 py-0.5 text-xs font-bold text-white">
+              {GESTURE_GUIDE.length}
+            </span>
           </div>
-          <div className="divide-y divide-pink-100 overflow-y-auto">
+          <div ref={guideListRef} className="relative divide-y divide-pink-100 overflow-y-auto">
             {GESTURE_GUIDE.map((g) => {
               const active = g.key === gesture;
               return (
                 <div
                   key={g.key}
-                  className={`flex flex-col gap-0.5 px-4 py-2.5 transition-colors ${
-                    active ? "bg-pink-50" : ""
+                  data-key={g.key}
+                  className={`flex items-center gap-3 px-3 py-2 transition-colors ${
+                    active ? "bg-pink-100/80" : "hover:bg-pink-50/70"
                   }`}
-                  style={active ? { boxShadow: "inset 3px 0 0 #ff6fb0" } : undefined}
+                  style={active ? { boxShadow: "inset 4px 0 0 #ff6fb0" } : undefined}
                 >
-                  <span className="text-[13px] font-medium text-zinc-800">{g.doThis}</span>
-                  <span
-                    className={`text-[12px] font-semibold ${
-                      active ? "text-pink-700" : "text-pink-600"
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={MEMES[g.key] ?? MEMES.default}
+                    alt=""
+                    width={44}
+                    height={44}
+                    className={`h-11 w-11 shrink-0 rounded-lg object-cover shadow-sm transition-transform ${
+                      active ? "scale-110 ring-2 ring-pink-400" : ""
                     }`}
-                  >
-                    → {g.youGet} {active ? "✨" : ""}
-                  </span>
+                  />
+                  <div className="flex min-w-0 flex-col gap-0.5">
+                    <span className="text-[13px] font-medium leading-snug text-zinc-800">{g.doThis}</span>
+                    <span
+                      className={`text-[12px] font-semibold ${
+                        active ? "text-pink-700" : "text-pink-500"
+                      }`}
+                    >
+                      → {g.youGet} {active ? "✨" : ""}
+                    </span>
+                  </div>
                 </div>
               );
             })}
           </div>
         </div>
       </div>
-
-      <button
-        type="button"
-        onClick={() => setDebugOn((d) => !d)}
-        className="relative z-10 flex items-center gap-2 rounded-full bg-white/40 px-4 py-1.5 text-xs font-semibold text-pink-900/80 shadow-sm backdrop-blur transition-colors hover:bg-white/60"
-      >
-        <span
-          className={`h-2 w-2 rounded-full transition-colors ${
-            debugOn ? "bg-emerald-500" : "bg-zinc-400"
-          }`}
-        />
-        click to turn {debugOn ? "off" : "on"} tracking
-      </button>
     </div>
   );
 }
@@ -398,10 +474,10 @@ function drawOverlay(
   ctx.save();
   ctx.scale(-1, 1);
   ctx.translate(-canvas.width, 0);
-  ctx.fillStyle = "rgba(0,0,0,0.45)";
+  ctx.fillStyle = "rgba(42,21,32,0.6)";
   ctx.fillRect(0, 0, 230, 26);
   ctx.font = "13px monospace";
-  ctx.fillStyle = "#ffff66";
+  ctx.fillStyle = "#ffd6e8";
   ctx.textBaseline = "top";
   const yawText = yawDeg !== null ? yawDeg.toFixed(1) : "n/a";
   const pitchText = pitchDeg !== null ? pitchDeg.toFixed(1) : "n/a";
@@ -433,8 +509,8 @@ function drawOverlay(
 
   for (const landmarks of handsLandmarks) {
     const points = landmarks.map(toPanel);
-    ctx.strokeStyle = "#00ff00";
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(255,255,255,0.9)";
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
     for (const [a, b] of HAND_CONNECTIONS) {
       ctx.moveTo(points[a][0], points[a][1]);
@@ -442,7 +518,7 @@ function drawOverlay(
     }
     ctx.stroke();
 
-    ctx.fillStyle = "#ff0000";
+    ctx.fillStyle = "#ff3d94";
     for (const [x, y] of points) {
       ctx.beginPath();
       ctx.arc(x, y, 3, 0, Math.PI * 2);
