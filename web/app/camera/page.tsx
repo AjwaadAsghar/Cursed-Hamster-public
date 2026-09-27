@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import {
   FilesetResolver,
@@ -16,6 +16,22 @@ import {
   type Point,
 } from "../lib/gestures";
 import FloatingEmojis from "../components/FloatingEmojis";
+import ShareModal, { type ShareResult } from "../components/ShareModal";
+import {
+  CARD_ASPECT,
+  drawCollectionCard,
+  drawMatchCard,
+  getShareFonts,
+  pickRecorderMime,
+} from "../lib/share";
+import {
+  addFound,
+  getFoundServerSnapshot,
+  getFoundSnapshot,
+  parseFound,
+  resetFound,
+  subscribeFound,
+} from "../lib/collection";
 
 const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
 const PANEL = 480; // meme/cam panel size (px)
@@ -28,6 +44,15 @@ const VOTE_MAJORITY = 7;
 // without hurting accuracy.
 const FACE_EVERY_N = 2;
 const POSE_EVERY_N = 3;
+
+const CLIP_MS = 5000;
+const TOTAL_HAMSTERS = GESTURE_GUIDE.length;
+
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+function hamsterName(key: string) {
+  return GESTURE_GUIDE.find((g) => g.key === key)?.youGet ?? `${displayGestureName(key)} hamster`;
+}
 
 const HAND_CONNECTIONS: [number, number][] = [
   [0, 1], [1, 2], [2, 3], [3, 4],
@@ -51,6 +76,19 @@ export default function CameraPage() {
   useEffect(() => {
     debugOnRef.current = debugOn;
   }, [debugOn]);
+
+  // Snapshot / clip / collection state.
+  const memeImgsRef = useRef<Record<string, HTMLImageElement>>({});
+  const gestureRef = useRef(gesture);
+  const [capture, setCapture] = useState<"idle" | "countdown" | "recording">("idle");
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const [flash, setFlash] = useState(false);
+  const [recProgress, setRecProgress] = useState(0);
+  const [shareResult, setShareResult] = useState<ShareResult | null>(null);
+  const [notice, setNotice] = useState("");
+  const foundSnapshot = useSyncExternalStore(subscribeFound, getFoundSnapshot, getFoundServerSnapshot);
+  const found = parseFound(foundSnapshot);
+  const onStableGestureRef = useRef<(g: string) => void>(() => {});
 
   useEffect(() => {
     let cancelled = false;
@@ -183,6 +221,7 @@ export default function CameraPage() {
           if (topCount >= VOTE_MAJORITY && topGesture !== stableGesture) {
             stableGesture = topGesture;
             setGesture(stableGesture);
+            onStableGestureRef.current(stableGesture);
           }
 
           drawOverlay(
@@ -222,13 +261,181 @@ export default function CameraPage() {
     };
   }, []);
 
-  // Warm the browser cache so switching memes never flashes an empty panel.
+  // Warm the browser cache so switching memes never flashes an empty panel,
+  // and keep the decoded images around for drawing share cards.
   useEffect(() => {
-    for (const src of Object.values(MEMES)) {
+    for (const [key, src] of Object.entries(MEMES)) {
       const img = new Image();
       img.src = src;
+      memeImgsRef.current[key] = img;
     }
   }, []);
+
+  useEffect(() => {
+    gestureRef.current = gesture;
+  }, [gesture]);
+
+  const openResult = useCallback((result: Omit<ShareResult, "url">) => {
+    setShareResult({ ...result, url: URL.createObjectURL(result.blob) });
+  }, []);
+
+  const closeResult = useCallback(() => {
+    setShareResult((r) => {
+      if (r) URL.revokeObjectURL(r.url);
+      return null;
+    });
+  }, []);
+
+  const showCollectionCard = useCallback(() => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1080;
+    canvas.height = Math.round(1080 * CARD_ASPECT);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    drawCollectionCard(ctx, canvas.width, {
+      fonts: getShareFonts(),
+      memes: GESTURE_GUIDE.map((g) => memeImgsRef.current[g.key]).filter(Boolean),
+      host: window.location.host,
+    });
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) return;
+        openResult({
+          kind: "image",
+          blob,
+          filename: "cursed-hamster-all.jpg",
+          heading: `You became all ${TOTAL_HAMSTERS} hamsters! 🏆`,
+          shareText: `I became all ${TOTAL_HAMSTERS} cursed hamsters 🐹🏆 can you? ${window.location.origin}`,
+        });
+      },
+      "image/jpeg",
+      0.92
+    );
+  }, [openResult]);
+
+  useEffect(() => {
+    onStableGestureRef.current = (g: string) => {
+      const total = addFound(g);
+      if (total === TOTAL_HAMSTERS) showCollectionCard();
+    };
+  }, [showCollectionCard]);
+
+  async function runCountdown() {
+    setCapture("countdown");
+    for (let n = 3; n > 0; n--) {
+      setCountdown(n);
+      await wait(1000);
+    }
+    setCountdown(null);
+  }
+
+  async function takeSnapshot() {
+    const video = videoRef.current;
+    if (!video || capture !== "idle") return;
+    await runCountdown();
+    setFlash(true);
+    setTimeout(() => setFlash(false), 180);
+
+    const key = gestureRef.current;
+    const canvas = document.createElement("canvas");
+    canvas.width = 1080;
+    canvas.height = Math.round(1080 * CARD_ASPECT);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      setCapture("idle");
+      return;
+    }
+    drawMatchCard(ctx, canvas.width, {
+      fonts: getShareFonts(),
+      meme: memeImgsRef.current[key],
+      video,
+      caption: `I became the ${hamsterName(key)}`,
+      host: window.location.host,
+    });
+    canvas.toBlob(
+      (blob) => {
+        setCapture("idle");
+        if (!blob) return;
+        openResult({
+          kind: "image",
+          blob,
+          filename: "cursed-hamster.jpg",
+          heading: `You became the ${hamsterName(key)} ✨`,
+          shareText: `I became the ${hamsterName(key)} 🐹 ${window.location.origin}`,
+        });
+      },
+      "image/jpeg",
+      0.92
+    );
+  }
+
+  async function recordClip() {
+    const video = videoRef.current;
+    if (!video || capture !== "idle") return;
+    const mime = pickRecorderMime();
+    if (!mime || !("captureStream" in HTMLCanvasElement.prototype)) {
+      setNotice("Video recording isn't supported in this browser. Try a photo instead!");
+      setTimeout(() => setNotice(""), 3500);
+      return;
+    }
+    await runCountdown();
+    setCapture("recording");
+    setRecProgress(0);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 720;
+    canvas.height = Math.round(720 * CARD_ASPECT);
+    const ctx = canvas.getContext("2d")!;
+    const fonts = getShareFonts();
+    const host = window.location.host;
+    const draw = () =>
+      drawMatchCard(ctx, canvas.width, {
+        fonts,
+        meme: memeImgsRef.current[gestureRef.current],
+        video,
+        caption: `I became the ${hamsterName(gestureRef.current)}`,
+        host,
+      });
+    draw();
+
+    const stream = canvas.captureStream(30);
+    const recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 4_000_000 });
+    const chunks: Blob[] = [];
+    recorder.ondataavailable = (e) => {
+      if (e.data.size) chunks.push(e.data);
+    };
+
+    const start = performance.now();
+    let raf = 0;
+    const tick = () => {
+      draw();
+      setRecProgress(Math.min(1, (performance.now() - start) / CLIP_MS));
+      raf = requestAnimationFrame(tick);
+    };
+
+    const done = new Promise<void>((resolve) => {
+      recorder.onstop = () => resolve();
+    });
+    recorder.start(250);
+    raf = requestAnimationFrame(tick);
+    await wait(CLIP_MS);
+    cancelAnimationFrame(raf);
+    recorder.stop();
+    await done;
+    stream.getTracks().forEach((t) => t.stop());
+    setCapture("idle");
+    setRecProgress(0);
+
+    const type = mime.split(";")[0];
+    const blob = new Blob(chunks, { type });
+    openResult({
+      kind: "video",
+      blob,
+      filename: `cursed-hamster.${type === "video/mp4" ? "mp4" : "webm"}`,
+      heading: "Your hamster clip 🎬",
+      shareText: `I became the hamster 🐹 ${window.location.origin}`,
+    });
+  }
 
   // Keep the active gesture visible in the guide list without scrolling the
   // page itself (scrollIntoView would also scroll the window on mobile).
@@ -383,6 +590,32 @@ export default function CameraPage() {
                 pointerEvents: "none",
               }}
             />
+            {countdown !== null && (
+              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center bg-black/25">
+                <span
+                  key={countdown}
+                  className="font-display text-[120px] font-bold leading-none text-white drop-shadow-lg"
+                  style={{ animation: "pop 0.3s ease-out" }}
+                >
+                  {countdown}
+                </span>
+                <span className="mt-2 rounded-full bg-black/40 px-3 py-1 text-sm font-semibold text-white">
+                  strike your pose!
+                </span>
+              </div>
+            )}
+            {capture === "recording" && (
+              <div className="pointer-events-none absolute left-3 top-3 flex items-center gap-2 rounded-full bg-black/55 px-3 py-1.5 text-xs font-bold text-white">
+                <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-red-500" />
+                REC {Math.ceil((1 - recProgress) * (CLIP_MS / 1000))}s
+              </div>
+            )}
+            {capture === "recording" && (
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1.5 bg-black/30">
+                <div className="h-full bg-red-500" style={{ width: `${recProgress * 100}%` }} />
+              </div>
+            )}
+            {flash && <div className="pointer-events-none absolute inset-0 bg-white" />}
             {status === "loading" && (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center">
                 <span className="text-5xl" style={{ animation: "wobble 1.2s ease-in-out infinite" }}>
@@ -394,12 +627,37 @@ export default function CameraPage() {
             )}
           </div>
         </div>
+
+        {/* Snapshot / clip actions */}
+        <div
+          className="flex flex-wrap items-center justify-center gap-2 px-3 py-3"
+          style={{ background: "linear-gradient(90deg, #2a1520, #3a1a2a)" }}
+        >
+          <button
+            type="button"
+            onClick={takeSnapshot}
+            disabled={status !== "ready" || capture !== "idle"}
+            className="btn-shine font-display flex items-center gap-2 rounded-full px-6 py-2.5 text-base font-semibold text-white shadow-lg shadow-pink-600/30 transition-transform hover:scale-105 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+            style={{ background: "linear-gradient(90deg, #ff6fb0, #ff3d94)" }}
+          >
+            📸 Snap a photo
+          </button>
+          <button
+            type="button"
+            onClick={recordClip}
+            disabled={status !== "ready" || capture !== "idle"}
+            className="font-display flex items-center gap-2 rounded-full bg-white/10 px-6 py-2.5 text-base font-semibold text-pink-100 ring-1 ring-pink-200/30 transition-all hover:scale-105 hover:bg-white/15 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+          >
+            {capture === "recording" ? "🔴 Recording…" : "🎬 Record 5s clip"}
+          </button>
+          {notice && <p className="w-full text-center text-xs font-medium text-pink-200">{notice}</p>}
+        </div>
       </div>
 
         {/* Gesture guide */}
         <div
           className="flex w-full flex-col overflow-hidden rounded-2xl bg-white/90 shadow-2xl shadow-pink-900/20 ring-4 ring-white/70 backdrop-blur lg:w-[340px]"
-          style={{ maxWidth: PANEL, maxHeight: PANEL + 52 }}
+          style={{ maxWidth: PANEL, maxHeight: PANEL + 52 + 64 }}
         >
           <div
             className="flex shrink-0 items-center gap-2 px-4"
@@ -407,13 +665,33 @@ export default function CameraPage() {
           >
             <span className="text-lg">🙌</span>
             <span className="font-display text-[17px] font-semibold text-white">Gestures to try</span>
-            <span className="ml-auto rounded-full bg-white/30 px-2 py-0.5 text-xs font-bold text-white">
-              {GESTURE_GUIDE.length}
-            </span>
+            {found.length >= TOTAL_HAMSTERS ? (
+              <button
+                type="button"
+                onClick={showCollectionCard}
+                className="ml-auto rounded-full bg-white px-2.5 py-0.5 text-xs font-bold text-pink-600 shadow-sm transition-transform hover:scale-105"
+              >
+                🏆 share
+              </button>
+            ) : (
+              <span className="ml-auto rounded-full bg-white/30 px-2 py-0.5 text-xs font-bold text-white">
+                {found.length}/{TOTAL_HAMSTERS} found
+              </span>
+            )}
+          </div>
+          <div className="h-1.5 w-full shrink-0 bg-pink-100">
+            <div
+              className="h-full transition-[width] duration-500"
+              style={{
+                width: `${(found.length / TOTAL_HAMSTERS) * 100}%`,
+                background: "linear-gradient(90deg, #ff6fb0, #ff3d94)",
+              }}
+            />
           </div>
           <div ref={guideListRef} className="relative divide-y divide-pink-100 overflow-y-auto">
             {GESTURE_GUIDE.map((g) => {
               const active = g.key === gesture;
+              const isFound = found.includes(g.key);
               return (
                 <div
                   key={g.key}
@@ -423,16 +701,23 @@ export default function CameraPage() {
                   }`}
                   style={active ? { boxShadow: "inset 4px 0 0 #ff6fb0" } : undefined}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={MEMES[g.key] ?? MEMES.default}
-                    alt=""
-                    width={44}
-                    height={44}
-                    className={`h-11 w-11 shrink-0 rounded-lg object-cover shadow-sm transition-transform ${
-                      active ? "scale-110 ring-2 ring-pink-400" : ""
-                    }`}
-                  />
+                  <div className="relative shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={MEMES[g.key] ?? MEMES.default}
+                      alt=""
+                      width={44}
+                      height={44}
+                      className={`h-11 w-11 rounded-lg object-cover shadow-sm transition-all ${
+                        active ? "scale-110 ring-2 ring-pink-400" : ""
+                      } ${isFound || active ? "" : "opacity-45 grayscale"}`}
+                    />
+                    {isFound && (
+                      <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-pink-500 text-[9px] font-bold text-white ring-2 ring-white">
+                        ✓
+                      </span>
+                    )}
+                  </div>
                   <div className="flex min-w-0 flex-col gap-0.5">
                     <span className="text-[13px] font-medium leading-snug text-zinc-800">{g.doThis}</span>
                     <span
@@ -446,9 +731,22 @@ export default function CameraPage() {
                 </div>
               );
             })}
+            {found.length > 0 && (
+              <div className="flex justify-center py-2.5">
+                <button
+                  type="button"
+                  onClick={resetFound}
+                  className="text-xs font-semibold text-zinc-400 hover:text-pink-600"
+                >
+                  reset my progress
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {shareResult && <ShareModal key={shareResult.url} result={shareResult} onClose={closeResult} />}
     </div>
   );
 }
