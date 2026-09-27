@@ -1,5 +1,5 @@
 import Link from "next/link";
-import FloatingHearts from "./components/FloatingHearts";
+import FloatingEmojis from "./components/FloatingEmojis";
 
 const POLAROIDS = [
   { src: "/memes/hug.jpg", top: "4%", left: "2%", rotate: -12, size: 128 },
@@ -17,7 +17,7 @@ export default function Home() {
           "linear-gradient(160deg, #ffd6e8 0%, #ffb6d5 35%, #ff8fc4 70%, #ff6fb0 100%)",
       }}
     >
-      <FloatingHearts />
+      <FloatingEmojis />
 
       {/* Decorative polaroid hamsters, desktop/tablet only */}
       {POLAROIDS.map((p, i) => (
@@ -44,7 +44,7 @@ export default function Home() {
       ))}
 
       <div className="relative z-10 flex flex-col items-center">
-        <div className="text-5xl">🎂🐹🎉</div>
+        <div className="text-5xl">🐹📸✨</div>
 
         <div
           className="mt-6 overflow-hidden rounded-full shadow-2xl ring-8 ring-white/70"
@@ -64,10 +64,10 @@ export default function Home() {
           className="mt-6 text-4xl font-extrabold tracking-tight sm:text-5xl"
           style={{ color: "#a3145a", textShadow: "0 2px 0 rgba(255,255,255,0.6)" }}
         >
-          Happy Birthday Stinky!
+          Hammy Hamster
         </h1>
         <p className="mt-3 max-w-sm text-base font-medium text-pink-900/80">
-          Point your webcam at yourself and pull faces — a hamster reacts live, just for you.
+          Point your webcam at yourself and pull faces — a hamster meme reacts live. Everything runs in your browser; nothing is uploaded.
         </p>
 
         <Link
@@ -75,7 +75,7 @@ export default function Home() {
           className="mt-9 rounded-full px-9 py-4 text-lg font-bold text-white shadow-xl transition-transform hover:scale-105 active:scale-95"
           style={{ background: "linear-gradient(90deg, #ff6fb0, #ff3d94)" }}
         >
-          Open for your stinky fart 🎀
+          Start the camera 📸
         </Link>
       </div>
     </div>

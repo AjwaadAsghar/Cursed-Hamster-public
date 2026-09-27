@@ -13,18 +13,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://hammy-hamster-webcam-six.vercel.app"),
-  title: "Happy Birthday Stinky",
-  description: "Pull faces, a hamster reacts live.",
+  metadataBase: new URL("https://hammy-hamster-webcam-public.vercel.app"),
+  title: "Hammy Hamster",
+  description: "Pull faces and gestures at your webcam - a hamster meme reacts live.",
   openGraph: {
-    title: "Happy Birthday Stinky",
-    description: "Pull faces, a hamster reacts live.",
+    title: "Hammy Hamster",
+    description: "Pull faces and gestures at your webcam - a hamster meme reacts live.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Happy Birthday Stinky",
-    description: "Pull faces, a hamster reacts live.",
+    title: "Hammy Hamster",
+    description: "Pull faces and gestures at your webcam - a hamster meme reacts live.",
   },
 };
 

@@ -15,7 +15,7 @@ import {
   displayGestureName,
   type Point,
 } from "../lib/gestures";
-import FloatingHearts from "../components/FloatingHearts";
+import FloatingEmojis from "../components/FloatingEmojis";
 
 const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
 const PANEL = 480; // meme/cam panel size (px)
@@ -225,7 +225,7 @@ export default function CameraPage() {
           "linear-gradient(160deg, #ffd6e8 0%, #ffb6d5 35%, #ff8fc4 70%, #ff6fb0 100%)",
       }}
     >
-      <FloatingHearts />
+      <FloatingEmojis />
 
       <Link
         href="/"
@@ -269,7 +269,7 @@ export default function CameraPage() {
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
             </span>
             <span className="text-[15px] font-semibold tracking-tight text-zinc-100">
-              Happy Birthday Stinky 🎀
+              Hammy Hamster 🐹
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -332,7 +332,7 @@ export default function CameraPage() {
             className="flex shrink-0 items-center gap-2 px-4"
             style={{ height: 48, background: "linear-gradient(90deg, #ff6fb0, #ff9ecb)" }}
           >
-            <span className="text-lg">🎀</span>
+            <span className="text-lg">🙌</span>
             <span className="text-[15px] font-bold text-white">Gestures to try</span>
           </div>
           <div className="divide-y divide-pink-100 overflow-y-auto">

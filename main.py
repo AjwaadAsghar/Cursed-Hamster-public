@@ -482,7 +482,7 @@ def compose_window(meme_view, cam_view, gesture, debug_on):
 
     cv2.circle(canvas, (18, HEADER_H // 2), 5, LIVE_DOT_COLOR, -1, cv2.LINE_AA)
     cv2.putText(
-        canvas, "Happy Birthday Stinky", (32, HEADER_H // 2 + 7),
+        canvas, "Hammy Hamster", (32, HEADER_H // 2 + 7),
         cv2.FONT_HERSHEY_DUPLEX, 0.7, (235, 235, 235), 1, cv2.LINE_AA,
     )
 

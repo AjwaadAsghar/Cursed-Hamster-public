@@ -42,7 +42,7 @@ body {
   }
 }
 
-.floating-heart {
+.floating-emoji {
   position: fixed;
   bottom: 0;
   pointer-events: none;
