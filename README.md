@@ -1,4 +1,4 @@
-# Hammyhamster
+# Cursed Hamster
 
 Point your webcam at yourself and pull faces / gestures - a hamster meme reacts live next to your camera feed. Runs entirely in the browser - see [web/README.md](web/README.md).
 

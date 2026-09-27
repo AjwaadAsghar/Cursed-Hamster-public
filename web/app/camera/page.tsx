@@ -269,7 +269,7 @@ export default function CameraPage() {
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
             </span>
             <span className="text-[15px] font-semibold tracking-tight text-zinc-100">
-              Hammy Hamster 🐹
+              Cursed Hamster 🐹
             </span>
           </div>
           <div className="flex items-center gap-2">

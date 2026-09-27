@@ -64,7 +64,7 @@ export default function Home() {
           className="mt-6 text-4xl font-extrabold tracking-tight sm:text-5xl"
           style={{ color: "#a3145a", textShadow: "0 2px 0 rgba(255,255,255,0.6)" }}
         >
-          Hammy Hamster
+          Cursed Hamster
         </h1>
         <p className="mt-3 max-w-sm text-base font-medium text-pink-900/80">
           Point your webcam at yourself and pull faces — a hamster meme reacts live. Everything runs in your browser; nothing is uploaded.

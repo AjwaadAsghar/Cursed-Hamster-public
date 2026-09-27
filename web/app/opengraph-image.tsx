@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "Hammy Hamster - a hamster reacts live to your webcam";
+export const alt = "Cursed Hamster - a hamster reacts live to your webcam";
 
 export default function OpengraphImage() {
   return new ImageResponse(
@@ -34,7 +34,7 @@ export default function OpengraphImage() {
             textShadow: "0 4px 0 rgba(255,255,255,0.6)",
           }}
         >
-          Hammy Hamster
+          Cursed Hamster
         </div>
         <div
           style={{

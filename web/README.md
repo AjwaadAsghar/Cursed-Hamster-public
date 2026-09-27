@@ -1,4 +1,4 @@
-# Hammyhamster (web)
+# Cursed Hamster (web)
 
 Browser port of the desktop app one directory up: point your webcam at yourself and pull faces - a hamster meme reacts live next to your camera feed. Runs entirely client-side (MediaPipe Tasks Vision, WASM) - nothing is uploaded anywhere.
 

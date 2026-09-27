@@ -14,16 +14,16 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://hammy-hamster-webcam-public.vercel.app"),
-  title: "Hammy Hamster",
+  title: "Cursed Hamster",
   description: "Pull faces and gestures at your webcam - a hamster meme reacts live.",
   openGraph: {
-    title: "Hammy Hamster",
+    title: "Cursed Hamster",
     description: "Pull faces and gestures at your webcam - a hamster meme reacts live.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Hammy Hamster",
+    title: "Cursed Hamster",
     description: "Pull faces and gestures at your webcam - a hamster meme reacts live.",
   },
 };
