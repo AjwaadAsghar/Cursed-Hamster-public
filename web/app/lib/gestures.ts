@@ -27,6 +27,11 @@ export const GESTURE_GUIDE: { key: string; doThis: string; youGet: string }[] = 
   },
   { key: "nerd", doThis: "Index finger up, away from your mouth", youGet: "nerd hamster" },
   {
+    key: "finger_gun",
+    doThis: "Finger gun: index + middle finger together, other fingers curled",
+    youGet: "finger gun hamster",
+  },
+  {
     key: "bicep",
     doThis: "Bent elbow, wrist raised above shoulder, elbow out to the side",
     youGet: "bicep hamster",
@@ -68,6 +73,7 @@ export const MEMES: Record<string, string> = {
   thinking: "/memes/thinking.jpg",
   hug: "/memes/hug.jpg",
   sad: "/memes/sad.jpg",
+  finger_gun: "/memes/finger_gun.jpg",
 };
 
 export const YAW_THRESHOLD_DEG = 18;
@@ -82,6 +88,11 @@ const THINKING_NEAR_MOUTH_DIST = 0.25;
 const SHY_NEAR_FACE_DIST = 0.3;
 const SHY_HEIGHT_TOLERANCE = 0.18;
 const HUG_BELOW_FACE_DIST = 0.2;
+// Finger gun: index + middle fingertips stay close (relative to hand size)
+// and roughly parallel - a peace sign spreads the tips well past the
+// knuckle spacing, which is what keeps the two apart.
+const FINGER_GUN_MAX_TIP_GAP = 0.4;
+const FINGER_GUN_MAX_SPREAD = 1.6;
 
 const MOUTH_LANDMARK = 13;
 
@@ -140,6 +151,18 @@ function classifySingleHand(fingers: number[]): string | null {
   if (index && middle && ring && pinky && thumb) return "open_palm";
   if (index && !middle && !ring && !pinky) return "pointer";
   return null;
+}
+
+// Index + middle extended and held together, ring + pinky curled. The thumb
+// is ignored on purpose: its extension reading is the noisiest of the five.
+export function detectFingerGun(landmarks: Point[]): boolean {
+  const [, index, middle, ring, pinky] = fingersUp(landmarks);
+  if (!index || !middle || ring || pinky) return false;
+  const scale = dist(landmarks[0], landmarks[9]);
+  if (scale < 1e-6) return false;
+  const tipGap = dist(landmarks[8], landmarks[12]);
+  const knuckleGap = dist(landmarks[6], landmarks[10]);
+  return tipGap < scale * FINGER_GUN_MAX_TIP_GAP && tipGap < knuckleGap * FINGER_GUN_MAX_SPREAD;
 }
 
 function thumbDyRatio(landmarks: Point[]): number {
@@ -307,6 +330,7 @@ export function classifyGesture(
     pitchDeg = headPitchDegrees(faceTransformMatrices[0]);
   }
 
+  let fingerGun = false;
   for (const landmarks of handsLandmarks) {
     const handC = center(landmarks);
 
@@ -340,6 +364,8 @@ export function classifyGesture(
       const nearMouth = mouthPoint !== null && vecDist(fingertip, mouthPoint) < MOUTH_NEAR_DIST;
       return { gesture: nearMouth ? "finger_mouth" : "nerd", yawDeg, pitchDeg };
     }
+
+    if (detectFingerGun(landmarks)) fingerGun = true;
   }
 
   if (detectShy(handsLandmarks, hasFace ? headCenter : null))
@@ -347,6 +373,11 @@ export function classifyGesture(
   if (detectThinking(handsLandmarks, mouthPoint)) return { gesture: "thinking", yawDeg, pitchDeg };
   if (detectHug(handsLandmarks, hasFace ? headCenter : null))
     return { gesture: "hug", yawDeg, pitchDeg };
+
+  // After the clasped-hands shapes (so a clasp that happens to read as two
+  // fingers up stays "thinking"/"hug"), but before the pose-based fallbacks:
+  // a raised finger gun otherwise reads as "bicep".
+  if (fingerGun) return { gesture: "finger_gun", yawDeg, pitchDeg };
 
   if (detectCrossArms(pose)) return { gesture: "cross_arms", yawDeg, pitchDeg };
   if (detectBicep(pose)) return { gesture: "bicep", yawDeg, pitchDeg };

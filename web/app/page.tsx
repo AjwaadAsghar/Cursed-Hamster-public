@@ -1,6 +1,7 @@
 import Link from "next/link";
 import FloatingEmojis from "./components/FloatingEmojis";
 import PrefetchModels from "./components/PrefetchModels";
+import { GESTURE_GUIDE } from "./lib/gestures";
 
 const POLAROIDS = [
   { src: "/memes/hug.jpg", top: "5%", left: "3%", rotate: -12, size: 132 },
@@ -62,7 +63,7 @@ export default function Home() {
 
       <div className="relative z-10 flex flex-col items-center">
         <span className="rounded-full bg-white/60 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-pink-700 shadow-sm backdrop-blur">
-          15 gestures · 15 hamsters
+          {GESTURE_GUIDE.length} gestures · {GESTURE_GUIDE.length} hamsters
         </span>
 
         <div className="relative mt-6">

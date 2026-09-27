@@ -195,7 +195,7 @@ export function drawMatchCard(
   ctx.restore();
 }
 
-// "I became all 15 hamsters" trophy card.
+// "I became all N hamsters" trophy card.
 export function drawCollectionCard(
   ctx: CanvasRenderingContext2D,
   width: number,
@@ -208,9 +208,22 @@ export function drawCollectionCard(
   drawTitle(ctx, fonts, `I became all ${memes.length}`, 165, 84);
   drawTitle(ctx, fonts, "cursed hamsters 🏆", 260, 84);
 
-  const cols = 5;
-  const cell = 172;
+  // Pick the column count that gives the biggest cells inside the space
+  // between the title and the pill, so the grid keeps fitting as hamsters
+  // are added.
   const gap = 18;
+  const maxW = 960;
+  const maxH = 600;
+  let cols = 5;
+  let cell = 0;
+  for (let c = 3; c <= 8; c++) {
+    const r = Math.ceil(memes.length / c);
+    const size = Math.min((maxW - (c - 1) * gap) / c, (maxH - (r - 1) * gap) / r);
+    if (size > cell) {
+      cell = size;
+      cols = c;
+    }
+  }
   const rows = Math.ceil(memes.length / cols);
   const gridW = cols * cell + (cols - 1) * gap;
   const gridH = rows * cell + (rows - 1) * gap;
