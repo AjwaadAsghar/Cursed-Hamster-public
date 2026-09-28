@@ -123,6 +123,19 @@ const COPY: Record<string, HamsterCopy> = {
       "Point it anywhere and hold it for a second.",
     ],
   },
+  v_sign: {
+    slug: "v-sign",
+    name: "V Sign Hamster",
+    tagline: "A blushing, happy hamster with sparkly lashes and a sweet little smile.",
+    about:
+      "The V sign hamster is pure cute energy: rosy cheeks, fluttery lashes and a tiny content smile. Throw up a peace sign and this is who you become. It is the meme for selfies, good vibes and saying hi.",
+    useItFor: ["Selfies", "Good vibes", "Saying hi"],
+    howTo: [
+      "Raise your index and middle fingers in a V (peace sign).",
+      "Spread the two fingers apart; if they touch, it's the finger gun hamster.",
+      "Curl your ring finger and pinky down and hold it for a second.",
+    ],
+  },
   bicep: {
     slug: "bicep",
     name: "Bicep Hamster",

@@ -32,6 +32,11 @@ export const GESTURE_GUIDE: { key: string; doThis: string; youGet: string }[] = 
     youGet: "finger gun hamster",
   },
   {
+    key: "v_sign",
+    doThis: "V sign: index + middle finger up and spread apart, other fingers curled",
+    youGet: "V sign hamster",
+  },
+  {
     key: "bicep",
     doThis: "Flex: elbow up at shoulder height and out to the side, fist raised up by your head",
     youGet: "bicep hamster",
@@ -80,6 +85,7 @@ export const MEMES: Record<string, string> = {
   sad: "/memes/sad.jpg",
   finger_gun: "/memes/finger_gun.jpg",
   tongue_out: "/memes/tongue_out.jpg",
+  v_sign: "/memes/v_sign.jpg",
 };
 
 export const YAW_THRESHOLD_DEG = 18;
@@ -105,18 +111,20 @@ const THINKING_NEAR_MOUTH_DIST = 0.25;
 const SHY_NEAR_FACE_DIST = 0.3;
 const SHY_HEIGHT_TOLERANCE = 0.18;
 const HUG_BELOW_FACE_DIST = 0.2;
-// Finger gun: index + middle fingertips stay close (relative to hand size)
-// and roughly parallel - a peace sign spreads the tips well past the
-// knuckle spacing, which is what keeps the two apart.
-const FINGER_GUN_MAX_TIP_GAP = 0.4;
-const FINGER_GUN_MAX_SPREAD = 1.6;
+// Finger gun vs V sign: both are index + middle up with ring + pinky curled;
+// the angle between the two raised fingers tells them apart. Measured on
+// real webcam photos and live video: finger gun 0.6-2.7 deg, V sign
+// 14.8-25.4 deg. The gap between the two limits is a dead zone so a hand
+// halfway between doesn't flicker.
+const FINGER_GUN_MAX_ANGLE_DEG = 8;
+const V_SIGN_MIN_ANGLE_DEG = 11;
 // Extension ratio = wrist-to-tip / wrist-to-knuckle. The shared 1.15 cut-off
 // in fingersUp is too tight for a curled ring finger in live video (it
-// hovers around 1.1-1.2), so the finger gun judges ring + pinky relative to
-// the two pointing fingers instead.
-const FINGER_GUN_MIN_POINTING = 1.3;
-const FINGER_GUN_MAX_CURLED = 1.4;
-const FINGER_GUN_MIN_CURL_MARGIN = 0.45;
+// hovers around 1.1-1.2), so ring + pinky are judged relative to the two
+// raised fingers instead.
+const TWO_FINGER_MIN_RAISED = 1.3;
+const TWO_FINGER_MAX_CURLED = 1.4;
+const TWO_FINGER_MIN_CURL_MARGIN = 0.45;
 
 const MOUTH_LANDMARK = 13;
 
@@ -198,27 +206,37 @@ function classifySingleHand(fingers: number[]): string | null {
   return null;
 }
 
-// Index + middle extended and held together, ring + pinky curled. The thumb
+// Index + middle extended, ring + pinky curled: returns the angle between
+// the two raised fingers, or null if the hand isn't in that shape. The thumb
 // is ignored on purpose: its extension reading is the noisiest of the five.
-export function detectFingerGun(landmarks: Point[]): boolean {
+export function twoFingerAngle(landmarks: Point[]): number | null {
   const wrist = landmarks[0];
   const ext = (tip: number, knuckle: number) => {
     const base = dist(wrist, landmarks[knuckle]);
     return base < 1e-6 ? 0 : dist(wrist, landmarks[tip]) / base;
   };
-  const index = ext(8, 5);
-  const middle = ext(12, 9);
-  const ring = ext(16, 13);
-  const pinky = ext(20, 17);
-  const pointing = Math.min(index, middle);
-  const curled = Math.max(ring, pinky);
-  if (pointing < FINGER_GUN_MIN_POINTING) return false;
-  if (curled > FINGER_GUN_MAX_CURLED || pointing - curled < FINGER_GUN_MIN_CURL_MARGIN) return false;
-  const scale = dist(landmarks[0], landmarks[9]);
-  if (scale < 1e-6) return false;
-  const tipGap = dist(landmarks[8], landmarks[12]);
-  const knuckleGap = dist(landmarks[6], landmarks[10]);
-  return tipGap < scale * FINGER_GUN_MAX_TIP_GAP && tipGap < knuckleGap * FINGER_GUN_MAX_SPREAD;
+  const raised = Math.min(ext(8, 5), ext(12, 9));
+  const curled = Math.max(ext(16, 13), ext(20, 17));
+  if (raised < TWO_FINGER_MIN_RAISED) return null;
+  if (curled > TWO_FINGER_MAX_CURLED || raised - curled < TWO_FINGER_MIN_CURL_MARGIN) return null;
+  // Direction of each raised finger, knuckle to tip.
+  const v1 = [landmarks[8].x - landmarks[5].x, landmarks[8].y - landmarks[5].y];
+  const v2 = [landmarks[12].x - landmarks[9].x, landmarks[12].y - landmarks[9].y];
+  const n1 = Math.hypot(v1[0], v1[1]);
+  const n2 = Math.hypot(v2[0], v2[1]);
+  if (n1 < 1e-6 || n2 < 1e-6) return null;
+  const cos = Math.max(-1, Math.min(1, (v1[0] * v2[0] + v1[1] * v2[1]) / (n1 * n2)));
+  return (Math.acos(cos) * 180) / Math.PI;
+}
+
+export function detectFingerGun(landmarks: Point[]): boolean {
+  const angle = twoFingerAngle(landmarks);
+  return angle !== null && angle < FINGER_GUN_MAX_ANGLE_DEG;
+}
+
+export function detectVSign(landmarks: Point[]): boolean {
+  const angle = twoFingerAngle(landmarks);
+  return angle !== null && angle > V_SIGN_MIN_ANGLE_DEG;
 }
 
 // Chromatic pinkness: how much redder than green, independent of brightness.
@@ -443,6 +461,7 @@ export function classifyGesture(
   }
 
   let fingerGun = false;
+  let vSign = false;
   for (const landmarks of handsLandmarks) {
     const handC = center(landmarks);
 
@@ -482,6 +501,7 @@ export function classifyGesture(
     }
 
     if (detectFingerGun(landmarks)) fingerGun = true;
+    else if (detectVSign(landmarks)) vSign = true;
   }
 
   if (detectShy(handsLandmarks, hasFace ? headCenter : null))
@@ -494,6 +514,7 @@ export function classifyGesture(
   // fingers up stays "thinking"/"hug"), but before the pose-based fallbacks:
   // a raised finger gun otherwise reads as "bicep".
   if (fingerGun) return { gesture: "finger_gun", yawDeg, pitchDeg };
+  if (vSign) return { gesture: "v_sign", yawDeg, pitchDeg };
 
   if (detectCrossArms(pose)) return { gesture: "cross_arms", yawDeg, pitchDeg };
   if (detectBicep(pose)) return { gesture: "bicep", yawDeg, pitchDeg };
