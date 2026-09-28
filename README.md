@@ -17,7 +17,7 @@ Point your webcam at yourself and pull faces / gestures - a hamster meme reacts 
 | V sign: index + middle finger up and spread apart, other fingers curled | V sign hamster |
 | Flex: elbow up at shoulder height and out to the side, fist raised up by your head | bicep hamster |
 | Both wrists tucked together at chest height (crossed arms - hands can be hidden) | crossed-arms hamster |
-| One hand on each cheek | shy hamster |
+| Hand on your cheek (one hand is enough, or one on each cheek) | shy hamster |
 | Hands clasped together at mouth/chin height | thinking hamster |
 | Hands clasped together at chest height, below your face | hug hamster |
 | Tongue out (mouth a little open) | tongue out hamster |

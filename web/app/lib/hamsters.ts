@@ -170,8 +170,8 @@ const COPY: Record<string, HamsterCopy> = {
       "The shy hamster blushes with big sparkly eyes and floppy bunny-like ears. It is the softest hamster in the collection, made for compliments, crushes and being flustered.",
     useItFor: ["Receiving compliments", "Being flustered", "Cute replies"],
     howTo: [
-      "Put one hand on each cheek.",
-      "Keep your hands apart, one on each side of your face.",
+      "Rest an open hand on your cheek (either side; one hand is enough).",
+      "Or put one hand on each cheek for the full shy look.",
       "Hold still and look cute.",
     ],
   },

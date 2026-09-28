@@ -46,7 +46,7 @@ export const GESTURE_GUIDE: { key: string; doThis: string; youGet: string }[] = 
     doThis: "Both wrists tucked together at chest height (hands can be hidden)",
     youGet: "crossed-arms hamster",
   },
-  { key: "shy", doThis: "One hand on each cheek", youGet: "shy hamster" },
+  { key: "shy", doThis: "Hand on your cheek (one hand is enough)", youGet: "shy hamster" },
   {
     key: "thinking",
     doThis: "Hands clasped together at mouth/chin height",
@@ -110,6 +110,18 @@ const HANDS_APART_MIN_DIST = 0.15;
 const THINKING_NEAR_MOUTH_DIST = 0.25;
 const SHY_NEAR_FACE_DIST = 0.3;
 const SHY_HEIGHT_TOLERANCE = 0.18;
+// One-hand shy (most people are holding their phone with the other hand):
+// an open hand resting on either cheek. Measured in face widths so it
+// doesn't depend on distance from the camera. "Open" (3+ fingers extended)
+// keeps it from stealing a fist by the head (lollipop), a finger near the
+// mouth, a finger gun or a V sign held next to the face.
+const SHY_ONE_HAND_MIN_FINGERS = 3;
+const SHY_ONE_HAND_MIN_SIDE = 0.25; // palm at least this far from the face's centre line...
+const SHY_ONE_HAND_MAX_SIDE = 0.95; // ...but still on/at the edge of the face
+const SHY_ONE_HAND_ABOVE_CHEEK = 0.45; // palm no higher than about eye level
+const SHY_ONE_HAND_BELOW_CHEEK = 0.6; // and no lower than about the jaw
+const FACE_EDGE_LEFT = 234,
+  FACE_EDGE_RIGHT = 454;
 const HUG_BELOW_FACE_DIST = 0.2;
 // Finger gun vs V sign: both are index + middle up with ring + pinky curled;
 // the angle between the two raised fingers tells them apart. Measured on
@@ -397,6 +409,32 @@ function detectShy(hands: Point[][], headCenter: [number, number] | null): boole
   );
 }
 
+function detectShyOneHand(hands: Point[][], face: Point[] | null): boolean {
+  if (!face) return false;
+  const faceW = dist(face[FACE_EDGE_LEFT], face[FACE_EDGE_RIGHT]);
+  if (faceW < 1e-6) return false;
+  const centerX = (face[FACE_EDGE_LEFT].x + face[FACE_EDGE_RIGHT].x) / 2;
+  const cheekY = (face[CHEEK_LEFT].y + face[CHEEK_RIGHT].y) / 2;
+
+  return hands.some((h) => {
+    const openFingers = fingersUp(h).slice(1).reduce((n, f) => n + f, 0);
+    if (openFingers < SHY_ONE_HAND_MIN_FINGERS) return false;
+    // Palm centre (wrist + the four knuckles) is steadier than the whole
+    // hand, whose centre moves with the fingers.
+    const palm = [0, 5, 9, 13, 17].map((i) => h[i]);
+    const px = palm.reduce((s, p) => s + p.x, 0) / palm.length;
+    const py = palm.reduce((s, p) => s + p.y, 0) / palm.length;
+    const side = Math.abs(px - centerX) / faceW;
+    const dy = (py - cheekY) / faceW;
+    return (
+      side >= SHY_ONE_HAND_MIN_SIDE &&
+      side <= SHY_ONE_HAND_MAX_SIDE &&
+      dy >= -SHY_ONE_HAND_ABOVE_CHEEK &&
+      dy <= SHY_ONE_HAND_BELOW_CHEEK
+    );
+  });
+}
+
 function detectThinking(hands: Point[][], mouthPoint: [number, number] | null): boolean {
   const centers = twoHandCenters(hands);
   if (!centers || !mouthPoint) return false;
@@ -509,6 +547,9 @@ export function classifyGesture(
   if (detectThinking(handsLandmarks, mouthPoint)) return { gesture: "thinking", yawDeg, pitchDeg };
   if (detectHug(handsLandmarks, hasFace ? headCenter : null))
     return { gesture: "hug", yawDeg, pitchDeg };
+  // After the two-hand clasps, so hands clasped by the chin stay "thinking".
+  if (detectShyOneHand(handsLandmarks, hasFace ? faceLandmarks![0] : null))
+    return { gesture: "shy", yawDeg, pitchDeg };
 
   // After the clasped-hands shapes (so a clasp that happens to read as two
   // fingers up stays "thinking"/"hug"), but before the pose-based fallbacks:
