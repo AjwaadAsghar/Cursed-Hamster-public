@@ -14,7 +14,7 @@ Point your webcam at yourself and pull faces / gestures - a hamster meme reacts 
 | Index finger near your mouth | finger-near-mouth hamster |
 | Index finger up, away from your mouth | nerd hamster |
 | Finger gun: index + middle finger together, other fingers curled | finger gun hamster |
-| Bent elbow, wrist raised above shoulder, elbow out to the side | bicep hamster |
+| Flex: elbow up at shoulder height and out to the side, fist raised up by your head | bicep hamster |
 | Both wrists tucked together at chest height (crossed arms - hands can be hidden) | crossed-arms hamster |
 | One hand on each cheek | shy hamster |
 | Hands clasped together at mouth/chin height | thinking hamster |
@@ -23,7 +23,7 @@ Point your webcam at yourself and pull faces / gestures - a hamster meme reacts 
 | Two hands visible, no other match | truck hamster |
 | Turn your head to the side | side-eye hamster |
 
-Priority order when multiple things could apply: pinch, then fist-beside-head/thumbs, then pointer (mouth/nerd), then shy/thinking/hug (two-hand shape+position), then finger gun, then crossed-arms/bicep (pose-based fallback), then two-hands, then head-tilt-down (sad), then head-turn (side-eye), then default.
+Priority order when multiple things could apply: pinch, then a fist in a strict flex pose (bicep), then fist-beside-head/thumbs, then pointer (mouth/nerd), then shy/thinking/hug (two-hand shape+position), then finger gun, then crossed-arms/bicep (pose-based fallback), then two-hands, then head-tilt-down (sad), then head-turn (side-eye), then default.
 
 The "sad" gesture reads head pitch off the same face-transformation-matrix trick `side_eye` uses for yaw; if it triggers on an upward tilt instead of downward, flip the sign in `headPitchDegrees` in `web/app/lib/gestures.ts`.
 

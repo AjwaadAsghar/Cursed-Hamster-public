@@ -131,9 +131,9 @@ const COPY: Record<string, HamsterCopy> = {
       "The bicep hamster flexes. Tiny body, questionable arm, unlimited confidence. Use it after the gym, after a win, or any time you feel stronger than you look.",
     useItFor: ["Gym posts", "Feeling strong", "Flexing a win"],
     howTo: [
-      "Bend your elbow and raise your wrist above your shoulder.",
-      "Point your elbow out to the side, like a flex.",
-      "Make sure your shoulders and arm are in frame.",
+      "Lift your arm out to the side so your elbow is at shoulder height.",
+      "Bend it and raise your fist up by your head: a proper flex 💪.",
+      "Sit back a little so your shoulders, elbow and fist are all in frame.",
     ],
   },
   cross_arms: {

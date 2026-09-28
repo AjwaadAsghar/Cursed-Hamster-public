@@ -33,7 +33,7 @@ export const GESTURE_GUIDE: { key: string; doThis: string; youGet: string }[] = 
   },
   {
     key: "bicep",
-    doThis: "Bent elbow, wrist raised above shoulder, elbow out to the side",
+    doThis: "Flex: elbow up at shoulder height and out to the side, fist raised up by your head",
     youGet: "bicep hamster",
   },
   {
@@ -80,7 +80,18 @@ export const YAW_THRESHOLD_DEG = 18;
 export const PITCH_THRESHOLD_DEG = 15;
 const GLASSES_NEAR_FACE_DIST = 0.28;
 const MOUTH_NEAR_DIST = 0.14;
-const ELBOW_BEND_MAX_DEG = 100;
+// Bicep = a proper flex, measured in shoulder widths so it doesn't depend on
+// how far you sit from the camera: upper arm raised out to the side with the
+// elbow near shoulder height, forearm up, fist well above the shoulder. The
+// old rule (wrist barely above the shoulder, any bend) also matched a thumbs
+// up or fist held near the shoulder whenever the hand tracker blinked.
+const BICEP_ANGLE_MIN_DEG = 25;
+const BICEP_ANGLE_MAX_DEG = 115;
+const BICEP_WRIST_ABOVE_SHOULDER = 0.45; // wrist this far above the shoulder
+const BICEP_ELBOW_MAX_BELOW_SHOULDER = 0.35; // elbow can't hang lower than this
+const BICEP_ELBOW_OUT = 0.3; // elbow out past the shoulder, away from the body
+const BICEP_WRIST_ABOVE_ELBOW = 0.25; // forearm pointing up
+const BICEP_FALLBACK_SHOULDER_WIDTH = 0.3;
 const POSE_VISIBILITY_MIN = 0.5;
 const HANDS_TOGETHER_DIST = 0.12;
 const HANDS_APART_MIN_DIST = 0.15;
@@ -198,11 +209,21 @@ function elbowAngleDegrees(shoulder: Point, elbow: Point, wrist: Point): number 
   return (Math.acos(cos) * 180) / Math.PI;
 }
 
-type BicepSignals = { angle: number; wristAbove: number; elbowOut: number };
+// Landmarks the pose model guesses outside the frame are unreliable; a flex
+// has to actually be on screen.
+function inFrame(p: Point): boolean {
+  return p.x > -0.02 && p.x < 1.02 && p.y > -0.02 && p.y < 1.02;
+}
 
-function bicepSignals(pose: Point[] | null): BicepSignals | null {
-  if (!pose) return null;
-  let best: BicepSignals | null = null;
+function detectBicep(pose: Point[] | null): boolean {
+  if (!pose) return false;
+  const lS = pose[LEFT_SHOULDER],
+    rS = pose[RIGHT_SHOULDER];
+  const bothShoulders = poseVisible(lS) && poseVisible(rS);
+  const shoulderWidth = bothShoulders ? dist(lS, rS) : BICEP_FALLBACK_SHOULDER_WIDTH;
+  if (shoulderWidth < 1e-6) return false;
+  const bodyCenterX = bothShoulders ? (lS.x + rS.x) / 2 : null;
+
   for (const [shoulderI, elbowI, wristI] of [
     [LEFT_SHOULDER, LEFT_ELBOW, LEFT_WRIST],
     [RIGHT_SHOULDER, RIGHT_ELBOW, RIGHT_WRIST],
@@ -211,19 +232,30 @@ function bicepSignals(pose: Point[] | null): BicepSignals | null {
     const elbow = pose[elbowI];
     const wrist = pose[wristI];
     if (!poseVisible(shoulder) || !poseVisible(elbow) || !poseVisible(wrist)) continue;
-    const angle = elbowAngleDegrees(shoulder, elbow, wrist);
-    if (angle === null) continue;
-    const wristAbove = shoulder.y - wrist.y;
-    const elbowOut = Math.abs(elbow.x - shoulder.x);
-    if (best === null || angle < best.angle) best = { angle, wristAbove, elbowOut };
-  }
-  return best;
-}
+    if (!inFrame(elbow) || !inFrame(wrist)) continue;
 
-function detectBicep(pose: Point[] | null): boolean {
-  const s = bicepSignals(pose);
-  if (!s) return false;
-  return s.angle < ELBOW_BEND_MAX_DEG && s.wristAbove > 0.06 && s.elbowOut > 0.06;
+    const angle = elbowAngleDegrees(shoulder, elbow, wrist);
+    if (angle === null || angle < BICEP_ANGLE_MIN_DEG || angle > BICEP_ANGLE_MAX_DEG) continue;
+
+    const wristAbove = (shoulder.y - wrist.y) / shoulderWidth;
+    const elbowBelow = (elbow.y - shoulder.y) / shoulderWidth;
+    const wristAboveElbow = (elbow.y - wrist.y) / shoulderWidth;
+    // Out to the side = further from the body's centre line than the shoulder.
+    const outward =
+      bodyCenterX === null
+        ? Math.abs(elbow.x - shoulder.x)
+        : Math.sign(shoulder.x - bodyCenterX) * (elbow.x - shoulder.x);
+    const elbowOut = outward / shoulderWidth;
+
+    if (
+      wristAbove > BICEP_WRIST_ABOVE_SHOULDER &&
+      elbowBelow < BICEP_ELBOW_MAX_BELOW_SHOULDER &&
+      elbowOut > BICEP_ELBOW_OUT &&
+      wristAboveElbow > BICEP_WRIST_ABOVE_ELBOW
+    )
+      return true;
+  }
+  return false;
 }
 
 function detectCrossArms(pose: Point[] | null): boolean {
@@ -344,6 +376,10 @@ export function classifyGesture(
     const gesture = classifySingleHand(fingers);
 
     if (gesture === "fist" || gesture === "thumbs_up") {
+      // A flexing fist sits beside the head too; a strict flex wins over
+      // "fist by head" (which is the elbow-down version). Thumbs up never
+      // becomes bicep.
+      if (gesture === "fist" && detectBicep(pose)) return { gesture: "bicep", yawDeg, pitchDeg };
       const besideHead =
         Math.abs(handC[1] - headCenter[1]) < 0.15 &&
         Math.abs(handC[0] - headCenter[0]) > 0.08 &&
