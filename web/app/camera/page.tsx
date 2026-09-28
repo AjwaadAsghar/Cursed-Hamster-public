@@ -164,6 +164,7 @@ export default function CameraPage() {
               minFaceDetectionConfidence: 0.6,
               minTrackingConfidence: 0.6,
               outputFacialTransformationMatrixes: true,
+              outputFaceBlendshapes: true,
             })
           )
           .then((f) => {
@@ -195,6 +196,7 @@ export default function CameraPage() {
         let lastFaceMatrices: number[][][] | null = null;
         let lastPoseLandmarks: Point[][] = [];
         let lastTongueOut = false;
+        let lastPucker = 0;
 
         // Tiny copy of the frame, only grabbed when the mouth is open, so the
         // tongue check can look at colours around the chin.
@@ -283,6 +285,8 @@ export default function CameraPage() {
                 })
               : null;
             lastTongueOut = lastFaceLandmarks.length ? checkTongue(lastFaceLandmarks[0]) : false;
+            lastPucker =
+              faceResult.faceBlendshapes?.[0]?.categories.find((c) => c.categoryName === "mouthPucker")?.score ?? 0;
           }
 
           if (pose && frameCount % POSE_EVERY_N === 0) {
@@ -295,7 +299,8 @@ export default function CameraPage() {
             lastFaceLandmarks.length ? lastFaceLandmarks : null,
             lastFaceMatrices,
             lastPoseLandmarks.length ? lastPoseLandmarks : null,
-            lastTongueOut
+            lastTongueOut,
+            lastPucker
           );
 
           votes.push(detected);

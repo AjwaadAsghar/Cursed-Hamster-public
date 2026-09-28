@@ -214,6 +214,19 @@ const COPY: Record<string, HamsterCopy> = {
       "Hold it next to your face, not on your cheek (that's the shy hamster).",
     ],
   },
+  kiss: {
+    slug: "kiss",
+    name: "Kiss Hamster",
+    tagline: "A wide-eyed hamster with big glossy pink lips puckered for a kiss.",
+    about:
+      "The kiss hamster puckers up with huge glossy pink lips and big hopeful eyes. It is the meme for sending love, flirting, blowing kisses and being dramatically adorable.",
+    useItFor: ["Sending love", "Blowing kisses", "Flirty replies"],
+    howTo: [
+      "Push your lips forward into a pout, like you're blowing a kiss.",
+      "Keep your mouth mostly closed (open wide and it's not a kiss).",
+      "Face the camera and hold it for a second.",
+    ],
+  },
   tongue_out: {
     slug: "tongue-out",
     name: "Tongue Out Hamster",

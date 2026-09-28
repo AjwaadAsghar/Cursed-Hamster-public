@@ -62,6 +62,7 @@ export const GESTURE_GUIDE: { key: string; doThis: string; youGet: string }[] = 
     doThis: "Raise an open hand, all five fingers out, like a high five",
     youGet: "high five hamster",
   },
+  { key: "kiss", doThis: "Pucker your lips like you're blowing a kiss", youGet: "kiss hamster" },
   {
     key: "tongue_out",
     doThis: "Stick your tongue out (mouth a little open)",
@@ -92,6 +93,7 @@ export const MEMES: Record<string, string> = {
   tongue_out: "/memes/tongue_out.jpg",
   v_sign: "/memes/v_sign.jpg",
   high_five: "/memes/high_five.jpg",
+  kiss: "/memes/kiss.jpg",
 };
 
 export const YAW_THRESHOLD_DEG = 18;
@@ -162,6 +164,10 @@ const MOUTH_LANDMARK = 13;
 // beard, so it's compared against the person's own cheek/nose colour, which
 // keeps it working across skin tones and lighting. A shocked/yawning open
 // mouth leaves that band chin-coloured and doesn't trigger it.
+// Kiss: the face model's own "mouthPucker" score. Measured: kiss selfie
+// 0.94, every neutral/sad/tongue-out photo 0.00-0.02.
+const KISS_MIN_PUCKER = 0.5;
+
 const TONGUE_MIN_LIP_GAP = 0.04; // inner-lip gap as a fraction of face height
 const TONGUE_MIN_PINK_OVER_SKIN = 0.03; // band pinkness minus skin pinkness
 const UPPER_LIP_INNER = 13,
@@ -512,7 +518,8 @@ export function classifyGesture(
   faceLandmarks: Point[][] | null,
   faceTransformMatrices: number[][][] | null,
   poseLandmarksList: Point[][] | null,
-  tongueOut = false
+  tongueOut = false,
+  puckerScore = 0
 ): ClassifyResult {
   const pose = poseLandmarksList && poseLandmarksList.length ? poseLandmarksList[0] : null;
 
@@ -598,6 +605,7 @@ export function classifyGesture(
   // Deliberate face gesture: beats the "two hands" catch-all and the head
   // tilt/turn ones (sticking your tongue out often tips the head a bit).
   if (tongueOut && hasFace) return { gesture: "tongue_out", yawDeg, pitchDeg };
+  if (puckerScore > KISS_MIN_PUCKER && hasFace) return { gesture: "kiss", yawDeg, pitchDeg };
 
   if (handsLandmarks.length === 2) return { gesture: "two_hands", yawDeg, pitchDeg };
 
