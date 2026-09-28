@@ -22,9 +22,9 @@ const COPY: Record<string, HamsterCopy> = {
   default: {
     slug: "poker-face",
     name: "Poker Face Hamster",
-    tagline: "The deadpan hamster in a bucket hat that feels absolutely nothing.",
+    tagline: "The deadpan hamster with a pink bow that feels absolutely nothing.",
     about:
-      "The poker face hamster is the resting state of the whole collection: a hamster in a green bucket hat staring straight through the screen with zero emotion. It is the face you make when someone explains something you already knew, or when the group chat goes quiet.",
+      "The poker face hamster is the resting state of the whole collection: a hamster with a little pink bow, staring straight through the screen with zero emotion. It is the face you make when someone explains something you already knew, or when the group chat goes quiet.",
     useItFor: ["Unimpressed reactions", "Ignoring drama", "Pretending you didn't see that"],
     howTo: [
       "Look at the camera with a neutral face.",

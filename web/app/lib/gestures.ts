@@ -58,7 +58,7 @@ export const GESTURE_GUIDE: { key: string; doThis: string; youGet: string }[] = 
 ];
 
 export const MEMES: Record<string, string> = {
-  default: "/memes/default.jpg",
+  default: "/memes/poker_face.jpg",
   thumbs_up: "/memes/thumbs_up.jpg",
   thumbs_down: "/memes/thumbs_down.jpg",
   side_eye: "/memes/side_eye.jpg",

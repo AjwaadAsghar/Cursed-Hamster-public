@@ -48,7 +48,7 @@ const POLAROIDS = [
   { src: "/memes/hug.jpg", top: "5%", left: "3%", rotate: -12, size: 132 },
   { src: "/memes/thumbs_up.jpg", top: "9%", right: "4%", rotate: 10, size: 116 },
   { src: "/memes/thinking.jpg", bottom: "12%", left: "2%", rotate: 8, size: 124 },
-  { src: "/memes/default.jpg", bottom: "5%", right: "3%", rotate: -8, size: 136 },
+  { src: "/memes/poker_face.jpg", bottom: "5%", right: "3%", rotate: -8, size: 136 },
 ];
 
 // Small strip of hamsters shown on phones, where the polaroids are hidden.
