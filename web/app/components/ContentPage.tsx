@@ -36,15 +36,15 @@ export default function ContentPage({
       <JsonLd data={breadcrumbs} />
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-8 sm:px-6 sm:py-12">
         <nav aria-label="Breadcrumb" className="text-sm font-medium text-pink-900/70">
-          <Link href="/" className="hover:text-pink-700 hover:underline">
+          <Link href="/" className="inline-block py-1.5 hover:text-pink-700 hover:underline">
             {SITE_NAME}
           </Link>{" "}
           › <span className="text-pink-900">{title}</span>
         </nav>
-        <article className="prose-hamster mt-6 rounded-3xl bg-white/85 p-6 shadow-xl shadow-pink-900/10 backdrop-blur sm:p-10">
-          <h1 className="font-display text-4xl font-bold tracking-tight text-pink-900">{title}</h1>
+        <article className="prose-hamster mt-4 rounded-3xl bg-white/85 p-5 shadow-xl shadow-pink-900/10 backdrop-blur sm:mt-6 sm:p-10">
+          <h1 className="font-display text-[2.1rem] font-bold leading-tight tracking-tight text-pink-900 sm:text-4xl">{title}</h1>
           {updated && <p className="mt-2 text-sm text-zinc-500">Last updated: {updated}</p>}
-          {intro && <div className="mt-4 text-lg leading-relaxed text-zinc-700">{intro}</div>}
+          {intro && <div className="mt-4 text-base leading-relaxed text-zinc-700 sm:text-lg">{intro}</div>}
           <div className="mt-6">{children}</div>
         </article>
       </main>

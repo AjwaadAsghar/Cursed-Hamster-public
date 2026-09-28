@@ -60,7 +60,7 @@ export default function PrivacyPage() {
 
       <h2>Photos and clips you make</h2>
       <p>
-        When you press &quot;Snap a photo&quot; or &quot;Record 5s clip&quot;, the image or video is
+        When you press &quot;Snap photo&quot; or &quot;Record 5s&quot;, the image or video is
         created on your device. We never receive it. It&apos;s only saved or shared if you choose to
         (for example with the Save or Share buttons). If you share it to another app, such as
         Instagram, TikTok or WhatsApp, that app&apos;s own privacy policy applies.

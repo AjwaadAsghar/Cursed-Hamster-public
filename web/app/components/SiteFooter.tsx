@@ -10,24 +10,24 @@ export default function SiteFooter() {
           <Link href="/" className="font-display text-2xl font-bold text-pink-800">
             Cursed Hamster 🐹
           </Link>
-          <nav aria-label="Main" className="flex flex-wrap gap-4 text-sm font-semibold text-pink-900/80">
-            <Link href="/" className="hover:text-pink-700">
+          <nav aria-label="Main" className="flex flex-wrap gap-x-4 text-sm font-semibold text-pink-900/80">
+            <Link href="/" className="py-2 hover:text-pink-700">
               Home
             </Link>
-            <Link href="/camera" className="hover:text-pink-700">
+            <Link href="/camera" className="py-2 hover:text-pink-700">
               Hamster webcam filter
             </Link>
-            <Link href="/hamsters" className="hover:text-pink-700">
+            <Link href="/hamsters" className="py-2 hover:text-pink-700">
               All hamster memes
             </Link>
           </nav>
         </div>
         <nav aria-label="Hamster memes">
           <p className="mb-2 text-xs font-bold uppercase tracking-widest text-pink-700/80">Hamster memes</p>
-          <ul className="flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-pink-950/70">
+          <ul className="flex flex-wrap gap-x-4 text-sm text-pink-950/70">
             {HAMSTERS.map((h) => (
               <li key={h.slug}>
-                <Link href={hamsterPath(h)} className="hover:text-pink-700 hover:underline">
+                <Link href={hamsterPath(h)} className="inline-block py-1.5 hover:text-pink-700 hover:underline">
                   {h.name}
                 </Link>
               </li>
@@ -40,13 +40,13 @@ export default function SiteFooter() {
             camera is never uploaded.
           </p>
           <nav aria-label="Legal" className="flex shrink-0 gap-4 text-xs font-semibold text-pink-900/70">
-            <Link href="/about" className="hover:text-pink-700">
+            <Link href="/about" className="py-2 hover:text-pink-700">
               About &amp; contact
             </Link>
-            <Link href="/privacy" className="hover:text-pink-700">
+            <Link href="/privacy" className="py-2 hover:text-pink-700">
               Privacy
             </Link>
-            <Link href="/terms" className="hover:text-pink-700">
+            <Link href="/terms" className="py-2 hover:text-pink-700">
               Terms
             </Link>
           </nav>

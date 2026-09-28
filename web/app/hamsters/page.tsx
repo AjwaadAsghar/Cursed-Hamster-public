@@ -52,17 +52,17 @@ export default function HamstersPage() {
       <JsonLd data={jsonLd} />
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-8 sm:px-6 sm:py-12">
         <nav aria-label="Breadcrumb" className="text-sm font-medium text-pink-900/70">
-          <Link href="/" className="hover:text-pink-700 hover:underline">
+          <Link href="/" className="inline-block py-1.5 hover:text-pink-700 hover:underline">
             {SITE_NAME}
           </Link>{" "}
           › <span className="text-pink-900">Hamster memes</span>
         </nav>
 
         <header className="mt-6 max-w-2xl">
-          <h1 className="font-display text-4xl font-bold tracking-tight text-pink-900 sm:text-5xl">
+          <h1 className="font-display text-[2.1rem] font-bold leading-tight tracking-tight text-pink-900 sm:text-5xl">
             All {HAMSTERS.length} cursed hamster memes
           </h1>
-          <p className="mt-3 text-lg text-pink-950/80">
+          <p className="mt-3 text-base text-pink-950/80 sm:text-lg">
             The full collection of cursed hamster memes, from the poker face hamster to the finger gun
             hamster. Tap one to see how to do the pose, then become that hamster live on your webcam.
           </p>
@@ -75,7 +75,7 @@ export default function HamstersPage() {
           </Link>
         </header>
 
-        <ul className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <ul className="mt-8 grid grid-cols-2 gap-3 sm:mt-10 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
           {HAMSTERS.map((h, i) => (
             <li key={h.slug}>
               <Link

@@ -65,7 +65,7 @@ export default function Home() {
     <>
     <JsonLd data={faqJsonLd} />
     <div
-      className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-16 text-center"
+      className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden px-5 py-10 text-center sm:px-6 sm:py-16"
       style={{
         background:
           "linear-gradient(160deg, #ffd6e8 0%, #ffb6d5 35%, #ff8fc4 70%, #ff6fb0 100%)",
@@ -109,18 +109,15 @@ export default function Home() {
           {HAMSTER_COUNT} gestures · {HAMSTER_COUNT} hamsters
         </span>
 
-        <div className="relative mt-6">
-          <div
-            className="overflow-hidden rounded-full shadow-2xl ring-8 ring-white/70"
-            style={{ width: 176, height: 176 }}
-          >
+        <div className="relative mt-5 sm:mt-6">
+          <div className="h-32 w-32 overflow-hidden rounded-full shadow-2xl ring-8 ring-white/70 sm:h-44 sm:w-44">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/memes/shy.jpg"
               alt="A shy hamster"
               width={176}
               height={176}
-              style={{ width: 176, height: 176, objectFit: "cover" }}
+              className="h-full w-full object-cover"
             />
           </div>
           <span
@@ -132,7 +129,7 @@ export default function Home() {
         </div>
 
         <h1
-          className="font-display mt-6 text-5xl font-bold tracking-tight sm:text-6xl"
+          className="font-display mt-5 text-[2.6rem] font-bold leading-tight tracking-tight sm:mt-6 sm:text-6xl"
           style={{ color: "#a3145a", textShadow: "0 3px 0 rgba(255,255,255,0.7)" }}
         >
           Cursed Hamster
@@ -142,11 +139,11 @@ export default function Home() {
         </p>
         <p className="mt-1 text-sm font-semibold text-pink-800/70">The hamster meme webcam filter</p>
 
-        <ol className="mt-7 flex flex-wrap justify-center gap-2">
+        <ol className="mt-5 flex flex-wrap justify-center gap-2 sm:mt-7">
           {STEPS.map((s, i) => (
             <li
               key={i}
-              className="flex items-center gap-2 rounded-full bg-white/55 px-3.5 py-1.5 text-sm font-semibold text-pink-900/85 shadow-sm backdrop-blur"
+              className="flex items-center gap-1.5 rounded-full bg-white/55 px-3 py-1.5 text-[13px] font-semibold text-pink-900/85 shadow-sm backdrop-blur sm:gap-2 sm:px-3.5 sm:text-sm"
             >
               <span>{s.emoji}</span>
               {s.text}
@@ -156,21 +153,21 @@ export default function Home() {
 
         <Link
           href="/camera"
-          className="btn-shine font-display mt-9 rounded-full px-10 py-4 text-xl font-semibold text-white shadow-xl shadow-pink-600/30 transition-transform hover:scale-105 active:scale-95"
+          className="btn-shine font-display mt-7 rounded-full px-10 py-4 text-xl font-semibold text-white shadow-xl shadow-pink-600/30 transition-transform hover:scale-105 active:scale-95 sm:mt-9"
           style={{ background: "linear-gradient(90deg, #ff6fb0, #ff3d94)" }}
         >
           Start the camera 📸
         </Link>
 
-        <p className="mt-4 flex items-center gap-1.5 text-xs font-medium text-pink-950/60">
-          <span>🔒</span> Runs entirely in your browser. Nothing is uploaded.{" "}
-          <Link href="/privacy" className="underline hover:text-pink-700">
+        <p className="mt-3 max-w-xs text-center text-xs font-medium text-pink-950/60 sm:max-w-none">
+          🔒 Runs entirely in your browser. Nothing is uploaded.{" "}
+          <Link href="/privacy" className="inline-block px-1 py-2 underline hover:text-pink-700">
             Privacy
           </Link>
         </p>
 
         {/* Phone-only meme strip */}
-        <div className="mt-10 flex gap-2 sm:hidden">
+        <div className="mt-6 flex gap-2 sm:hidden">
           {STRIP.map((src, i) => (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -192,13 +189,13 @@ export default function Home() {
       </div>
     </div>
 
-    <main className="relative w-full bg-pink-50/95 px-6 py-16">
-      <div className="mx-auto flex max-w-5xl flex-col gap-16">
+    <main className="relative w-full bg-pink-50/95 px-5 py-12 sm:px-6 sm:py-16">
+      <div className="mx-auto flex max-w-5xl flex-col gap-12 sm:gap-16">
         <section className="mx-auto max-w-3xl text-center">
-          <h2 className="font-display text-3xl font-bold text-pink-900 sm:text-4xl">
+          <h2 className="font-display text-[1.75rem] font-bold leading-tight text-pink-900 sm:text-4xl">
             What is Cursed Hamster?
           </h2>
-          <p className="mt-4 text-lg leading-relaxed text-zinc-700">
+          <p className="mt-4 text-base leading-relaxed text-zinc-700 sm:text-lg">
             Cursed Hamster is a free <strong>hamster meme webcam filter</strong>. Instead of putting a
             filter on your face, it finds the <strong>cursed hamster meme</strong> that matches what
             you&apos;re doing: give a thumbs up and you get the thumbs up hamster, make finger guns and
@@ -212,11 +209,11 @@ export default function Home() {
             <h2 id="all-hamsters" className="font-display text-3xl font-bold text-pink-900">
               Every hamster meme you can become
             </h2>
-            <Link href="/hamsters" className="text-sm font-semibold text-pink-700 underline hover:text-pink-500">
+            <Link href="/hamsters" className="inline-block py-2 text-sm font-semibold text-pink-700 underline hover:text-pink-500">
               See all hamster memes →
             </Link>
           </div>
-          <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+          <ul className="mt-6 grid grid-cols-3 gap-2.5 sm:grid-cols-4 sm:gap-3 lg:grid-cols-8">
             {HAMSTERS.map((h) => (
               <li key={h.slug}>
                 <Link
@@ -272,14 +269,14 @@ export default function Home() {
           </h2>
           <div className="mt-5 flex flex-col gap-3">
             {FAQ.map((f) => (
-              <details key={f.q} className="group rounded-2xl bg-white p-5 shadow-sm open:shadow-md">
-                <summary className="cursor-pointer list-none font-semibold text-pink-900 marker:hidden">
+              <details key={f.q} className="group rounded-2xl bg-white shadow-sm open:shadow-md">
+                <summary className="cursor-pointer list-none p-5 font-semibold text-pink-900 marker:hidden">
                   <span className="flex items-center justify-between gap-3">
                     {f.q}
                     <span className="text-pink-400 transition-transform group-open:rotate-45">+</span>
                   </span>
                 </summary>
-                <p className="mt-3 text-[15px] leading-relaxed text-zinc-700">{f.a}</p>
+                <p className="px-5 pb-5 text-[15px] leading-relaxed text-zinc-700">{f.a}</p>
               </details>
             ))}
           </div>

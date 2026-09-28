@@ -52,7 +52,7 @@ export default function ShareModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-pink-950/50 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-pink-950/50 p-3 backdrop-blur-sm sm:p-4"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -70,8 +70,8 @@ export default function ShareModal({
           <img
             src={result.url}
             alt="Your Cursed Hamster card"
-            className="w-full rounded-2xl shadow-lg"
-            style={{ aspectRatio: "4 / 5" }}
+            className="mx-auto h-auto max-w-full rounded-2xl shadow-lg"
+            style={{ maxHeight: "min(52vh, 52svh)" }}
           />
         ) : (
           <video
@@ -81,8 +81,8 @@ export default function ShareModal({
             muted
             playsInline
             controls
-            className="w-full rounded-2xl bg-pink-100 shadow-lg"
-            style={{ aspectRatio: "4 / 5" }}
+            className="mx-auto w-full rounded-2xl bg-pink-100 object-contain shadow-lg"
+            style={{ aspectRatio: "4 / 5", maxHeight: "min(52vh, 52svh)" }}
           />
         )}
 

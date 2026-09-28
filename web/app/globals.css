@@ -171,3 +171,39 @@ body {
 .prose-hamster a:hover {
   color: #ec4899;
 }
+
+/* Camera page: size the meme + camera panels to the screen height so the
+   hamster, your camera and the Snap/Record buttons all fit on one screen.
+   ~205px (phones) / ~200px (sm+) is the fixed chrome around the panels:
+   top bar, card header, action bar and page padding. */
+.cam-card {
+  max-width: 962px;
+}
+
+@media (max-width: 639px) {
+  .cam-panel {
+    width: min(100%, max(170px, calc((100vh - 205px) / 2)));
+    width: min(100%, max(170px, calc((100svh - 205px) / 2)));
+    margin-inline: auto;
+  }
+}
+
+@media (min-width: 640px) {
+  .cam-card {
+    max-width: min(962px, max(460px, calc((100vh - 200px) * 2 + 3px)));
+    max-width: min(962px, max(460px, calc((100svh - 200px) * 2 + 3px)));
+  }
+}
+
+/* Gesture guide: as tall as the camera card next to it (header + panel +
+   action bar = panel + 116px). */
+.cam-guide {
+  max-height: 596px;
+}
+
+@media (min-width: 1024px) {
+  .cam-guide {
+    max-height: min(596px, max(346px, calc(100vh - 84px)));
+    max-height: min(596px, max(346px, calc(100svh - 84px)));
+  }
+}

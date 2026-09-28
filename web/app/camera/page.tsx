@@ -550,8 +550,7 @@ export default function CameraPage() {
 
       <div className="relative z-10 flex w-full max-w-[962px] flex-col items-center gap-4 lg:max-w-none lg:flex-row lg:items-start lg:justify-center">
       <div
-        className="w-full overflow-hidden rounded-2xl shadow-2xl shadow-pink-900/20 ring-4 ring-white/70"
-        style={{ maxWidth: PANEL * 2 + 2 }}
+        className="cam-card w-full overflow-hidden rounded-2xl shadow-2xl shadow-pink-900/20 ring-4 ring-white/70"
       >
         {/* Header */}
         <div
@@ -592,8 +591,8 @@ export default function CameraPage() {
 
         {/* Meme on top, camera below - stacked on mobile; side by side from
             sm upward. */}
-        <div className="flex flex-col sm:flex-row">
-          <div className="aspect-square w-full overflow-hidden sm:w-1/2" style={{ background: "#2a1520" }}>
+        <div className="flex flex-col sm:flex-row" style={{ background: "#1a1015" }}>
+          <div className="cam-panel aspect-square w-full overflow-hidden sm:w-1/2" style={{ background: "#2a1520" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               key={gesture}
@@ -603,7 +602,7 @@ export default function CameraPage() {
             />
           </div>
           <div className="h-[3px] w-full sm:h-auto sm:w-[3px]" style={{ background: "#ffb6d5" }} />
-          <div className="relative aspect-square w-full sm:w-1/2" style={{ background: "#1a1015" }}>
+          <div className="cam-panel relative aspect-square w-full sm:w-1/2" style={{ background: "#1a1015" }}>
             <video
               ref={videoRef}
               playsInline
@@ -631,7 +630,7 @@ export default function CameraPage() {
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center bg-black/25">
                 <span
                   key={countdown}
-                  className="font-display text-[120px] font-bold leading-none text-white drop-shadow-lg"
+                  className="font-display text-[88px] font-bold leading-none text-white drop-shadow-lg sm:text-[120px]"
                   style={{ animation: "pop 0.3s ease-out" }}
                 >
                   {countdown}
@@ -671,25 +670,25 @@ export default function CameraPage() {
 
         {/* Snapshot / clip actions */}
         <div
-          className="flex flex-wrap items-center justify-center gap-2 px-3 py-3"
+          className="flex flex-wrap items-center justify-center gap-2 px-2 py-2.5 sm:px-3 sm:py-3"
           style={{ background: "linear-gradient(90deg, #2a1520, #3a1a2a)" }}
         >
           <button
             type="button"
             onClick={takeSnapshot}
             disabled={status !== "ready" || capture !== "idle"}
-            className="btn-shine font-display flex items-center gap-2 rounded-full px-6 py-2.5 text-base font-semibold text-white shadow-lg shadow-pink-600/30 transition-transform hover:scale-105 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+            className="btn-shine font-display flex items-center gap-1.5 rounded-full px-4 py-2.5 text-[15px] font-semibold text-white sm:gap-2 sm:px-6 sm:text-base shadow-lg shadow-pink-600/30 transition-transform hover:scale-105 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
             style={{ background: "linear-gradient(90deg, #ff6fb0, #ff3d94)" }}
           >
-            📸 Snap a photo
+            📸 Snap photo
           </button>
           <button
             type="button"
             onClick={recordClip}
             disabled={status !== "ready" || capture !== "idle"}
-            className="font-display flex items-center gap-2 rounded-full bg-white/10 px-6 py-2.5 text-base font-semibold text-pink-100 ring-1 ring-pink-200/30 transition-all hover:scale-105 hover:bg-white/15 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
+            className="font-display flex items-center gap-1.5 rounded-full bg-white/10 px-4 py-2.5 text-[15px] font-semibold text-pink-100 sm:gap-2 sm:px-6 sm:text-base ring-1 ring-pink-200/30 transition-all hover:scale-105 hover:bg-white/15 active:scale-95 disabled:pointer-events-none disabled:opacity-50"
           >
-            {capture === "recording" ? "🔴 Recording…" : "🎬 Record 5s clip"}
+            {capture === "recording" ? "🔴 Recording…" : "🎬 Record 5s"}
           </button>
           {notice && <p className="w-full text-center text-xs font-medium text-pink-200">{notice}</p>}
         </div>
@@ -697,8 +696,8 @@ export default function CameraPage() {
 
         {/* Gesture guide */}
         <div
-          className="flex w-full flex-col overflow-hidden rounded-2xl bg-white/90 shadow-2xl shadow-pink-900/20 ring-4 ring-white/70 backdrop-blur lg:w-[340px]"
-          style={{ maxWidth: PANEL, maxHeight: PANEL + 52 + 64 }}
+          className="cam-guide flex w-full flex-col overflow-hidden rounded-2xl bg-white/90 shadow-2xl shadow-pink-900/20 ring-4 ring-white/70 backdrop-blur lg:w-[340px]"
+          style={{ maxWidth: PANEL }}
         >
           <div
             className="flex shrink-0 items-center gap-2 px-4"
@@ -777,7 +776,7 @@ export default function CameraPage() {
                 <button
                   type="button"
                   onClick={resetFound}
-                  className="text-xs font-semibold text-zinc-400 hover:text-pink-600"
+                  className="px-3 py-2 text-xs font-semibold text-zinc-400 hover:text-pink-600"
                 >
                   reset my progress
                 </button>

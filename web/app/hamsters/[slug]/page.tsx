@@ -69,13 +69,13 @@ export default async function HamsterPage({ params }: PageProps<"/hamsters/[slug
         <nav aria-label="Breadcrumb" className="text-sm font-medium text-pink-900/70">
           <ol className="flex flex-wrap items-center gap-1.5">
             <li>
-              <Link href="/" className="hover:text-pink-700 hover:underline">
+              <Link href="/" className="inline-block py-1.5 hover:text-pink-700 hover:underline">
                 {SITE_NAME}
               </Link>
             </li>
             <li aria-hidden="true">›</li>
             <li>
-              <Link href="/hamsters" className="hover:text-pink-700 hover:underline">
+              <Link href="/hamsters" className="inline-block py-1.5 hover:text-pink-700 hover:underline">
                 Hamster memes
               </Link>
             </li>
@@ -87,7 +87,7 @@ export default async function HamsterPage({ params }: PageProps<"/hamsters/[slug
         </nav>
 
         <article className="mt-6 grid gap-8 md:grid-cols-[minmax(0,420px)_1fr] md:items-start">
-          <figure className="rounded-3xl bg-white p-3 shadow-2xl shadow-pink-900/15 ring-4 ring-white/70">
+          <figure className="mx-auto w-full max-w-[300px] rounded-3xl bg-white p-3 shadow-2xl shadow-pink-900/15 ring-4 ring-white/70 md:max-w-none">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={h.image}
@@ -102,7 +102,7 @@ export default async function HamsterPage({ params }: PageProps<"/hamsters/[slug
           </figure>
 
           <div>
-            <h1 className="font-display text-4xl font-bold tracking-tight text-pink-900 sm:text-5xl">
+            <h1 className="font-display text-[2.1rem] font-bold leading-tight tracking-tight text-pink-900 sm:text-5xl">
               {h.name} Meme
             </h1>
             <p className="mt-3 text-lg font-medium text-pink-950/80">{h.tagline}</p>
@@ -148,7 +148,7 @@ export default async function HamsterPage({ params }: PageProps<"/hamsters/[slug
 
         <section className="mt-12">
           <h2 className="font-display text-2xl font-semibold text-pink-900">More cursed hamster memes</h2>
-          <ul className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
             {more.map((m) => (
               <li key={m.slug}>
                 <Link
@@ -172,7 +172,7 @@ export default async function HamsterPage({ params }: PageProps<"/hamsters/[slug
             ))}
           </ul>
           <p className="mt-5">
-            <Link href="/hamsters" className="font-semibold text-pink-800 underline hover:text-pink-600">
+            <Link href="/hamsters" className="inline-block py-2 font-semibold text-pink-800 underline hover:text-pink-600">
               See all {HAMSTERS.length} hamster memes →
             </Link>
           </p>
