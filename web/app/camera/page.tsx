@@ -244,17 +244,30 @@ export default function CameraPage() {
           rafId = requestAnimationFrame(loop);
         };
 
+        // The models read from a canvas copy of each frame rather than the
+        // <video> element: fed the video element directly, the hand model
+        // missed a close-up open palm on every frame (0/63) that it found on
+        // every frame (34/34) from the same pixels via a canvas.
+        const frameCanvas = document.createElement("canvas");
+        const frameCtx = frameCanvas.getContext("2d");
+
         const renderFrame = () => {
           const now = performance.now();
-          if (video.readyState < 2) return;
+          if (video.readyState < 2 || !frameCtx) return;
 
           frameCount += 1;
 
-          const handResult = hand!.detectForVideo(video, now);
+          if (frameCanvas.width !== video.videoWidth || frameCanvas.height !== video.videoHeight) {
+            frameCanvas.width = video.videoWidth;
+            frameCanvas.height = video.videoHeight;
+          }
+          frameCtx.drawImage(video, 0, 0);
+
+          const handResult = hand!.detectForVideo(frameCanvas, now);
           const handsLandmarks = (handResult.landmarks ?? []) as Point[][];
 
           if (face && frameCount % FACE_EVERY_N === 0) {
-            const faceResult = face.detectForVideo(video, now);
+            const faceResult = face.detectForVideo(frameCanvas, now);
             lastFaceLandmarks = (faceResult.faceLandmarks ?? []) as Point[][];
             lastFaceMatrices = faceResult.facialTransformationMatrixes
               ? faceResult.facialTransformationMatrixes.map((m) => {
@@ -273,7 +286,7 @@ export default function CameraPage() {
           }
 
           if (pose && frameCount % POSE_EVERY_N === 0) {
-            const poseResult = pose.detectForVideo(video, now);
+            const poseResult = pose.detectForVideo(frameCanvas, now);
             lastPoseLandmarks = (poseResult.landmarks ?? []) as Point[][];
           }
 

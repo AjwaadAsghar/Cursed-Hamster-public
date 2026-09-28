@@ -58,6 +58,11 @@ export const GESTURE_GUIDE: { key: string; doThis: string; youGet: string }[] = 
     youGet: "hug hamster",
   },
   {
+    key: "high_five",
+    doThis: "Raise an open hand, all five fingers out, like a high five",
+    youGet: "high five hamster",
+  },
+  {
     key: "tongue_out",
     doThis: "Stick your tongue out (mouth a little open)",
     youGet: "tongue out hamster",
@@ -86,6 +91,7 @@ export const MEMES: Record<string, string> = {
   finger_gun: "/memes/finger_gun.jpg",
   tongue_out: "/memes/tongue_out.jpg",
   v_sign: "/memes/v_sign.jpg",
+  high_five: "/memes/high_five.jpg",
 };
 
 export const YAW_THRESHOLD_DEG = 18;
@@ -117,11 +123,21 @@ const SHY_HEIGHT_TOLERANCE = 0.18;
 // mouth, a finger gun or a V sign held next to the face.
 const SHY_ONE_HAND_MIN_FINGERS = 3;
 const SHY_ONE_HAND_MIN_SIDE = 0.25; // palm at least this far from the face's centre line...
-const SHY_ONE_HAND_MAX_SIDE = 0.95; // ...but still on/at the edge of the face
+const SHY_ONE_HAND_MAX_SIDE = 0.85; // ...but still on/at the edge of the face
 const SHY_ONE_HAND_ABOVE_CHEEK = 0.45; // palm no higher than about eye level
 const SHY_ONE_HAND_BELOW_CHEEK = 0.6; // and no lower than about the jaw
 const FACE_EDGE_LEFT = 234,
   FACE_EDGE_RIGHT = 454;
+
+// High five: a full open hand - all four fingers clearly extended and the
+// thumb out to the side. Measured on a real phone selfie + live video:
+// fingers 1.87-2.11, thumb 1.43-1.45 and 63-65 deg from the index finger;
+// the raised palm sat 1.2 face widths beside the face, well clear of the
+// one-hand shy zone (<= 0.85), which is checked first so a hand resting on
+// the cheek stays shy.
+const HIGH_FIVE_MIN_FINGER = 1.5;
+const HIGH_FIVE_MIN_THUMB = 1.2;
+const HIGH_FIVE_MIN_THUMB_ANGLE_DEG = 35;
 const HUG_BELOW_FACE_DIST = 0.2;
 // Finger gun vs V sign: both are index + middle up with ring + pinky curled;
 // the angle between the two raised fingers tells them apart. Measured on
@@ -409,6 +425,24 @@ function detectShy(hands: Point[][], headCenter: [number, number] | null): boole
   );
 }
 
+export function detectHighFive(h: Point[]): boolean {
+  const ext = (tip: number, knuckle: number) => {
+    const base = dist(h[0], h[knuckle]);
+    return base < 1e-6 ? 0 : dist(h[0], h[tip]) / base;
+  };
+  if (Math.min(ext(8, 5), ext(12, 9), ext(16, 13), ext(20, 17)) < HIGH_FIVE_MIN_FINGER) return false;
+  const thumbBase = dist(h[2], h[17]);
+  if (thumbBase < 1e-6 || dist(h[4], h[17]) / thumbBase < HIGH_FIVE_MIN_THUMB) return false;
+  // Thumb direction (its base joint to tip) vs index direction (knuckle to tip).
+  const t = [h[4].x - h[2].x, h[4].y - h[2].y];
+  const i = [h[8].x - h[5].x, h[8].y - h[5].y];
+  const nt = Math.hypot(t[0], t[1]);
+  const ni = Math.hypot(i[0], i[1]);
+  if (nt < 1e-6 || ni < 1e-6) return false;
+  const cos = Math.max(-1, Math.min(1, (t[0] * i[0] + t[1] * i[1]) / (nt * ni)));
+  return (Math.acos(cos) * 180) / Math.PI > HIGH_FIVE_MIN_THUMB_ANGLE_DEG;
+}
+
 function detectShyOneHand(hands: Point[][], face: Point[] | null): boolean {
   if (!face) return false;
   const faceW = dist(face[FACE_EDGE_LEFT], face[FACE_EDGE_RIGHT]);
@@ -550,6 +584,7 @@ export function classifyGesture(
   // After the two-hand clasps, so hands clasped by the chin stay "thinking".
   if (detectShyOneHand(handsLandmarks, hasFace ? faceLandmarks![0] : null))
     return { gesture: "shy", yawDeg, pitchDeg };
+  if (handsLandmarks.some(detectHighFive)) return { gesture: "high_five", yawDeg, pitchDeg };
 
   // After the clasped-hands shapes (so a clasp that happens to read as two
   // fingers up stays "thinking"/"hug"), but before the pose-based fallbacks:

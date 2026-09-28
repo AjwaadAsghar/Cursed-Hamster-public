@@ -201,6 +201,19 @@ const COPY: Record<string, HamsterCopy> = {
       "Hold the pose for a second.",
     ],
   },
+  high_five: {
+    slug: "high-five",
+    name: "High Five Hamster",
+    tagline: "A wide-eyed hamster holding up a big open hand for a high five.",
+    about:
+      "The high five hamster throws up a giant open palm with a totally blank stare. Is it a high five? A hello? A polite \"stop right there\"? Nobody knows. It is the meme for greetings, celebrating and awkwardly ending a conversation.",
+    useItFor: ["Saying hi", "High fives", "Stop right there"],
+    howTo: [
+      "Raise one hand up beside your face, palm facing the camera.",
+      "Spread all five fingers out, with your thumb out to the side.",
+      "Hold it next to your face, not on your cheek (that's the shy hamster).",
+    ],
+  },
   tongue_out: {
     slug: "tongue-out",
     name: "Tongue Out Hamster",
