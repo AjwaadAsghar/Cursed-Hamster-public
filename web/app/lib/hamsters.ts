@@ -188,6 +188,19 @@ const COPY: Record<string, HamsterCopy> = {
       "Hold the pose for a second.",
     ],
   },
+  tongue_out: {
+    slug: "tongue-out",
+    name: "Tongue Out Hamster",
+    tagline: "A deranged hamster with a huge grin and its tongue hanging out.",
+    about:
+      "The tongue out hamster has completely lost it: wide eyes, massive open grin and a long pink tongue flopping out. It is the meme for being silly on purpose, teasing a friend or any moment of pure unhinged goofiness.",
+    useItFor: ["Being silly", "Teasing a friend", "Unhinged goofiness"],
+    howTo: [
+      "Open your mouth a little.",
+      "Stick your tongue out, down over your bottom lip.",
+      "Keep your face in good light and hold it for a second.",
+    ],
+  },
   sad: {
     slug: "sad",
     name: "Sad Hamster",

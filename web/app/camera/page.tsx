@@ -12,7 +12,9 @@ import {
   MEMES,
   GESTURE_GUIDE,
   classifyGesture,
+  detectTongueOut,
   displayGestureName,
+  mouthOpenRatio,
   type Point,
 } from "../lib/gestures";
 import FloatingEmojis from "../components/FloatingEmojis";
@@ -192,6 +194,45 @@ export default function CameraPage() {
         let lastFaceLandmarks: Point[][] = [];
         let lastFaceMatrices: number[][][] | null = null;
         let lastPoseLandmarks: Point[][] = [];
+        let lastTongueOut = false;
+
+        // Tiny copy of the frame, only grabbed when the mouth is open, so the
+        // tongue check can look at colours around the chin.
+        const sampleCanvas = document.createElement("canvas");
+        const sampleCtx = sampleCanvas.getContext("2d", { willReadFrequently: true });
+        const checkTongue = (faceLm: Point[]): boolean => {
+          if (!sampleCtx || !video.videoWidth || mouthOpenRatio(faceLm) < 0.04) return false;
+          const w = 192;
+          const h = Math.round((w * video.videoHeight) / video.videoWidth);
+          if (sampleCanvas.width !== w || sampleCanvas.height !== h) {
+            sampleCanvas.width = w;
+            sampleCanvas.height = h;
+          }
+          sampleCtx.drawImage(video, 0, 0, w, h);
+          const data = sampleCtx.getImageData(0, 0, w, h).data;
+          return detectTongueOut(
+            faceLm,
+            (x, y, radius) => {
+              const r = Math.max(1, Math.round(radius));
+              const x0 = Math.round(x) - r, x1 = Math.round(x) + r;
+              const y0 = Math.round(y) - r, y1 = Math.round(y) + r;
+              if (x0 < 0 || y0 < 0 || x1 >= w || y1 >= h) return null;
+              let R = 0, G = 0, B = 0, n = 0;
+              for (let yy = y0; yy <= y1; yy++) {
+                for (let xx = x0; xx <= x1; xx++) {
+                  const i = (yy * w + xx) * 4;
+                  R += data[i];
+                  G += data[i + 1];
+                  B += data[i + 2];
+                  n++;
+                }
+              }
+              return [R / n, G / n, B / n];
+            },
+            w,
+            h
+          );
+        };
 
         const loop = () => {
           if (cancelled) return;
@@ -228,6 +269,7 @@ export default function CameraPage() {
                   return rows;
                 })
               : null;
+            lastTongueOut = lastFaceLandmarks.length ? checkTongue(lastFaceLandmarks[0]) : false;
           }
 
           if (pose && frameCount % POSE_EVERY_N === 0) {
@@ -239,7 +281,8 @@ export default function CameraPage() {
             handsLandmarks,
             lastFaceLandmarks.length ? lastFaceLandmarks : null,
             lastFaceMatrices,
-            lastPoseLandmarks.length ? lastPoseLandmarks : null
+            lastPoseLandmarks.length ? lastPoseLandmarks : null,
+            lastTongueOut
           );
 
           votes.push(detected);

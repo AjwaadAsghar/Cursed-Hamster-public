@@ -52,6 +52,11 @@ export const GESTURE_GUIDE: { key: string; doThis: string; youGet: string }[] = 
     doThis: "Hands clasped together at chest height, below your face",
     youGet: "hug hamster",
   },
+  {
+    key: "tongue_out",
+    doThis: "Stick your tongue out (mouth a little open)",
+    youGet: "tongue out hamster",
+  },
   { key: "sad", doThis: "Head tilted down", youGet: "sad hamster" },
   { key: "two_hands", doThis: "Two hands visible, no other match", youGet: "truck hamster" },
   { key: "side_eye", doThis: "Turn your head to the side", youGet: "side-eye hamster" },
@@ -74,6 +79,7 @@ export const MEMES: Record<string, string> = {
   hug: "/memes/hug.jpg",
   sad: "/memes/sad.jpg",
   finger_gun: "/memes/finger_gun.jpg",
+  tongue_out: "/memes/tongue_out.jpg",
 };
 
 export const YAW_THRESHOLD_DEG = 18;
@@ -104,8 +110,36 @@ const HUG_BELOW_FACE_DIST = 0.2;
 // knuckle spacing, which is what keeps the two apart.
 const FINGER_GUN_MAX_TIP_GAP = 0.4;
 const FINGER_GUN_MAX_SPREAD = 1.6;
+// Extension ratio = wrist-to-tip / wrist-to-knuckle. The shared 1.15 cut-off
+// in fingersUp is too tight for a curled ring finger in live video (it
+// hovers around 1.1-1.2), so the finger gun judges ring + pinky relative to
+// the two pointing fingers instead.
+const FINGER_GUN_MIN_POINTING = 1.3;
+const FINGER_GUN_MAX_CURLED = 1.4;
+const FINGER_GUN_MIN_CURL_MARGIN = 0.45;
 
 const MOUTH_LANDMARK = 13;
+
+// Tongue out. The face model has no usable tongue signal, but with the
+// tongue out it does read the mouth as open, and the band between the lower
+// lip and the chin turns tongue-pink. That band is normally chin skin or
+// beard, so it's compared against the person's own cheek/nose colour, which
+// keeps it working across skin tones and lighting. A shocked/yawning open
+// mouth leaves that band chin-coloured and doesn't trigger it.
+const TONGUE_MIN_LIP_GAP = 0.04; // inner-lip gap as a fraction of face height
+const TONGUE_MIN_PINK_OVER_SKIN = 0.03; // band pinkness minus skin pinkness
+const UPPER_LIP_INNER = 13,
+  LOWER_LIP_INNER = 14,
+  LOWER_LIP_OUTER = 17,
+  CHIN = 152,
+  FOREHEAD = 10,
+  NOSE_TIP = 4,
+  CHEEK_LEFT = 205,
+  CHEEK_RIGHT = 425;
+
+// Returns the average [r, g, b] of a square patch centred on (x, y) in video
+// pixels, or null if it falls outside the frame.
+export type RgbSampler = (x: number, y: number, radius: number) => [number, number, number] | null;
 
 const FINGER_JOINTS: [number, number][] = [
   [8, 5],
@@ -167,13 +201,58 @@ function classifySingleHand(fingers: number[]): string | null {
 // Index + middle extended and held together, ring + pinky curled. The thumb
 // is ignored on purpose: its extension reading is the noisiest of the five.
 export function detectFingerGun(landmarks: Point[]): boolean {
-  const [, index, middle, ring, pinky] = fingersUp(landmarks);
-  if (!index || !middle || ring || pinky) return false;
+  const wrist = landmarks[0];
+  const ext = (tip: number, knuckle: number) => {
+    const base = dist(wrist, landmarks[knuckle]);
+    return base < 1e-6 ? 0 : dist(wrist, landmarks[tip]) / base;
+  };
+  const index = ext(8, 5);
+  const middle = ext(12, 9);
+  const ring = ext(16, 13);
+  const pinky = ext(20, 17);
+  const pointing = Math.min(index, middle);
+  const curled = Math.max(ring, pinky);
+  if (pointing < FINGER_GUN_MIN_POINTING) return false;
+  if (curled > FINGER_GUN_MAX_CURLED || pointing - curled < FINGER_GUN_MIN_CURL_MARGIN) return false;
   const scale = dist(landmarks[0], landmarks[9]);
   if (scale < 1e-6) return false;
   const tipGap = dist(landmarks[8], landmarks[12]);
   const knuckleGap = dist(landmarks[6], landmarks[10]);
   return tipGap < scale * FINGER_GUN_MAX_TIP_GAP && tipGap < knuckleGap * FINGER_GUN_MAX_SPREAD;
+}
+
+// Chromatic pinkness: how much redder than green, independent of brightness.
+function pinkness([r, g, b]: [number, number, number]): number {
+  const sum = r + g + b;
+  return sum < 1 ? 0 : (r - g) / sum;
+}
+
+export function mouthOpenRatio(face: Point[]): number {
+  const faceH = dist(face[FOREHEAD], face[CHIN]);
+  return faceH < 1e-6 ? 0 : dist(face[UPPER_LIP_INNER], face[LOWER_LIP_INNER]) / faceH;
+}
+
+export function detectTongueOut(face: Point[], sample: RgbSampler, width: number, height: number): boolean {
+  if (mouthOpenRatio(face) < TONGUE_MIN_LIP_GAP) return false;
+  const px = (i: number) => ({ x: face[i].x * width, y: face[i].y * height });
+  const faceH = Math.hypot(px(FOREHEAD).x - px(CHIN).x, px(FOREHEAD).y - px(CHIN).y);
+  if (faceH < 20) return false;
+
+  const avgPink = (points: { x: number; y: number }[], radius: number): number | null => {
+    const vals = points.map((p) => sample(p.x, p.y, radius)).filter((c): c is [number, number, number] => !!c);
+    return vals.length ? vals.reduce((s, c) => s + pinkness(c), 0) / vals.length : null;
+  };
+
+  const lip = px(LOWER_LIP_OUTER);
+  const chin = px(CHIN);
+  const band = [0.15, 0.35, 0.55, 0.75].map((t) => ({
+    x: lip.x + (chin.x - lip.x) * t,
+    y: lip.y + (chin.y - lip.y) * t,
+  }));
+  const bandPink = avgPink(band, faceH * 0.02);
+  const skinPink = avgPink([px(NOSE_TIP), px(CHEEK_LEFT), px(CHEEK_RIGHT)], faceH * 0.025);
+  if (bandPink === null || skinPink === null) return false;
+  return bandPink - skinPink > TONGUE_MIN_PINK_OVER_SKIN;
 }
 
 function thumbDyRatio(landmarks: Point[]): number {
@@ -342,7 +421,8 @@ export function classifyGesture(
   handsLandmarks: Point[][],
   faceLandmarks: Point[][] | null,
   faceTransformMatrices: number[][][] | null,
-  poseLandmarksList: Point[][] | null
+  poseLandmarksList: Point[][] | null,
+  tongueOut = false
 ): ClassifyResult {
   const pose = poseLandmarksList && poseLandmarksList.length ? poseLandmarksList[0] : null;
 
@@ -417,6 +497,10 @@ export function classifyGesture(
 
   if (detectCrossArms(pose)) return { gesture: "cross_arms", yawDeg, pitchDeg };
   if (detectBicep(pose)) return { gesture: "bicep", yawDeg, pitchDeg };
+
+  // Deliberate face gesture: beats the "two hands" catch-all and the head
+  // tilt/turn ones (sticking your tongue out often tips the head a bit).
+  if (tongueOut && hasFace) return { gesture: "tongue_out", yawDeg, pitchDeg };
 
   if (handsLandmarks.length === 2) return { gesture: "two_hands", yawDeg, pitchDeg };
 

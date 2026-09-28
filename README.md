@@ -19,11 +19,12 @@ Point your webcam at yourself and pull faces / gestures - a hamster meme reacts 
 | One hand on each cheek | shy hamster |
 | Hands clasped together at mouth/chin height | thinking hamster |
 | Hands clasped together at chest height, below your face | hug hamster |
+| Tongue out (mouth a little open) | tongue out hamster |
 | Head tilted down | sad hamster |
 | Two hands visible, no other match | truck hamster |
 | Turn your head to the side | side-eye hamster |
 
-Priority order when multiple things could apply: pinch, then a fist in a strict flex pose (bicep), then fist-beside-head/thumbs, then pointer (mouth/nerd), then shy/thinking/hug (two-hand shape+position), then finger gun, then crossed-arms/bicep (pose-based fallback), then two-hands, then head-tilt-down (sad), then head-turn (side-eye), then default.
+Priority order when multiple things could apply: pinch, then a fist in a strict flex pose (bicep), then fist-beside-head/thumbs, then pointer (mouth/nerd), then shy/thinking/hug (two-hand shape+position), then finger gun, then crossed-arms/bicep (pose-based fallback), then tongue out, then two-hands, then head-tilt-down (sad), then head-turn (side-eye), then default.
 
 The "sad" gesture reads head pitch off the same face-transformation-matrix trick `side_eye` uses for yaw; if it triggers on an upward tilt instead of downward, flip the sign in `headPitchDegrees` in `web/app/lib/gestures.ts`.
 
