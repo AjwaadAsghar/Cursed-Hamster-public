@@ -163,7 +163,10 @@ export default function Home() {
         </Link>
 
         <p className="mt-4 flex items-center gap-1.5 text-xs font-medium text-pink-950/60">
-          <span>🔒</span> Runs entirely in your browser. Nothing is uploaded.
+          <span>🔒</span> Runs entirely in your browser. Nothing is uploaded.{" "}
+          <Link href="/privacy" className="underline hover:text-pink-700">
+            Privacy
+          </Link>
         </p>
 
         {/* Phone-only meme strip */}

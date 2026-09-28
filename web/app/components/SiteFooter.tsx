@@ -34,10 +34,23 @@ export default function SiteFooter() {
             ))}
           </ul>
         </nav>
-        <p className="text-xs text-pink-950/55">
-          Cursed Hamster is a free hamster meme webcam filter. It runs entirely in your browser; your
-          camera is never uploaded.
-        </p>
+        <div className="flex flex-col gap-3 border-t border-pink-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-pink-950/55">
+            Cursed Hamster is a free hamster meme webcam filter. It runs entirely in your browser; your
+            camera is never uploaded.
+          </p>
+          <nav aria-label="Legal" className="flex shrink-0 gap-4 text-xs font-semibold text-pink-900/70">
+            <Link href="/about" className="hover:text-pink-700">
+              About &amp; contact
+            </Link>
+            <Link href="/privacy" className="hover:text-pink-700">
+              Privacy
+            </Link>
+            <Link href="/terms" className="hover:text-pink-700">
+              Terms
+            </Link>
+          </nav>
+        </div>
       </div>
     </footer>
   );

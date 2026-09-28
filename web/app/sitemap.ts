@@ -8,6 +8,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: absoluteUrl("/"), lastModified: now, changeFrequency: "weekly", priority: 1 },
     { url: absoluteUrl("/camera"), lastModified: now, changeFrequency: "weekly", priority: 0.9 },
     { url: absoluteUrl("/hamsters"), lastModified: now, changeFrequency: "weekly", priority: 0.8 },
+    { url: absoluteUrl("/about"), lastModified: now, changeFrequency: "yearly", priority: 0.4 },
+    { url: absoluteUrl("/privacy"), lastModified: now, changeFrequency: "yearly", priority: 0.3 },
+    { url: absoluteUrl("/terms"), lastModified: now, changeFrequency: "yearly", priority: 0.3 },
     ...HAMSTERS.map((h) => ({
       url: absoluteUrl(hamsterPath(h)),
       lastModified: now,

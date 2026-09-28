@@ -9,6 +9,11 @@ export const SITE_URL = (
 
 export const SITE_NAME = "Cursed Hamster";
 
+export const CONTACT_EMAIL = "asgharajwaad@gmail.com";
+
+// Bump when the privacy policy or terms change.
+export const LEGAL_LAST_UPDATED = "September 28, 2026";
+
 export const SITE_TITLE = "Cursed Hamster: The Hamster Meme Webcam Filter";
 
 export const SITE_DESCRIPTION =
