@@ -4,6 +4,7 @@ import PrefetchModels from "./components/PrefetchModels";
 import JsonLd from "./components/JsonLd";
 import SiteFooter from "./components/SiteFooter";
 import { HAMSTERS, hamsterPath } from "./lib/hamsters";
+import { withBase } from "./lib/site";
 
 const HAMSTER_COUNT = HAMSTERS.length;
 
@@ -45,14 +46,14 @@ const faqJsonLd = {
 };
 
 const POLAROIDS = [
-  { src: "/memes/hug.jpg", top: "5%", left: "3%", rotate: -12, size: 132 },
-  { src: "/memes/thumbs_up.jpg", top: "9%", right: "4%", rotate: 10, size: 116 },
-  { src: "/memes/thinking.jpg", bottom: "12%", left: "2%", rotate: 8, size: 124 },
-  { src: "/memes/poker_face.jpg", bottom: "5%", right: "3%", rotate: -8, size: 136 },
+  { src: withBase("/memes/hug.jpg"), top: "5%", left: "3%", rotate: -12, size: 132 },
+  { src: withBase("/memes/thumbs_up.jpg"), top: "9%", right: "4%", rotate: 10, size: 116 },
+  { src: withBase("/memes/thinking.jpg"), bottom: "12%", left: "2%", rotate: 8, size: 124 },
+  { src: withBase("/memes/poker_face.jpg"), bottom: "5%", right: "3%", rotate: -8, size: 136 },
 ];
 
 // Small strip of hamsters shown on phones, where the polaroids are hidden.
-const STRIP = ["/memes/side_eye.jpg", "/memes/nerd.jpg", "/memes/bicep.jpg", "/memes/sad.jpg"];
+const STRIP = [withBase("/memes/side_eye.jpg"), withBase("/memes/nerd.jpg"), withBase("/memes/bicep.jpg"), withBase("/memes/sad.jpg")];
 
 const STEPS = [
   { emoji: "📸", text: "Allow your camera" },
@@ -113,7 +114,7 @@ export default function Home() {
           <div className="h-32 w-32 overflow-hidden rounded-full shadow-2xl ring-8 ring-white/70 sm:h-44 sm:w-44">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/memes/shy.jpg"
+              src={withBase("/memes/shy.jpg")}
               alt="A shy hamster"
               width={176}
               height={176}

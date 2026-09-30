@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { BASE_PATH } from "../lib/site";
 
 export type ShareResult = {
   kind: "image" | "video";
@@ -42,7 +43,7 @@ export default function ShareModal({
 
   async function copyLink() {
     try {
-      await navigator.clipboard.writeText(window.location.origin);
+      await navigator.clipboard.writeText(`${window.location.origin}${BASE_PATH}`);
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {

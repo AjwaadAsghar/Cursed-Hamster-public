@@ -26,7 +26,7 @@ export function pageMetadata(opts: {
     title: absoluteTitle ? { absolute: title } : title,
     description,
     keywords,
-    alternates: { canonical: path },
+    alternates: { canonical: absoluteUrl(path) },
     openGraph: {
       title: fullTitle,
       description,

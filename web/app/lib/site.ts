@@ -3,8 +3,18 @@
 // fallback below) and every canonical URL, sitemap entry, OG tag and
 // structured-data block follows.
 
+// The app is served from ajtoolbox.com/cursed-hamster: ajtoolbox.com rewrites
+// that path to this deployment, and Next's basePath puts every route there.
+// basePath doesn't touch plain strings (<img src>, fetch, manifest), so those
+// go through withBase().
+export const BASE_PATH = "/cursed-hamster";
+
+export function withBase(path: string): string {
+  return `${BASE_PATH}${path}`;
+}
+
 export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://hammy-hamster-webcam-public.vercel.app"
+  process.env.NEXT_PUBLIC_SITE_URL ?? `https://ajtoolbox.com${BASE_PATH}`
 ).replace(/\/$/, "");
 
 export const SITE_NAME = "Cursed Hamster";
@@ -36,6 +46,7 @@ export const SITE_KEYWORDS = [
 ];
 
 export function absoluteUrl(path = "/"): string {
+  if (path === "/") return SITE_URL;
   return `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
 

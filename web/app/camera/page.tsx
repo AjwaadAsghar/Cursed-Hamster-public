@@ -19,6 +19,7 @@ import {
 } from "../lib/gestures";
 import FloatingEmojis from "../components/FloatingEmojis";
 import { MODEL_URLS, WASM_URL, fetchModel } from "../lib/assets";
+import { BASE_PATH } from "../lib/site";
 import ShareModal, { type ShareResult } from "../components/ShareModal";
 import {
   CARD_ASPECT,
@@ -392,7 +393,7 @@ export default function CameraPage() {
     drawCollectionCard(ctx, canvas.width, {
       fonts: getShareFonts(),
       memes: GESTURE_GUIDE.map((g) => memeImgsRef.current[g.key]).filter(Boolean),
-      host: window.location.host,
+      host: `${window.location.host}${BASE_PATH}`,
     });
     canvas.toBlob(
       (blob) => {
@@ -402,7 +403,7 @@ export default function CameraPage() {
           blob,
           filename: "cursed-hamster-all.jpg",
           heading: `You became all ${TOTAL_HAMSTERS} hamsters! 🏆`,
-          shareText: `I became all ${TOTAL_HAMSTERS} cursed hamsters 🐹🏆 can you? ${window.location.origin}`,
+          shareText: `I became all ${TOTAL_HAMSTERS} cursed hamsters 🐹🏆 can you? ${window.location.origin}${BASE_PATH}`,
         });
       },
       "image/jpeg",
@@ -447,7 +448,7 @@ export default function CameraPage() {
       meme: memeImgsRef.current[key],
       video,
       caption: `I became the ${hamsterName(key)}`,
-      host: window.location.host,
+      host: `${window.location.host}${BASE_PATH}`,
     });
     canvas.toBlob(
       (blob) => {
@@ -458,7 +459,7 @@ export default function CameraPage() {
           blob,
           filename: "cursed-hamster.jpg",
           heading: `You became the ${hamsterName(key)} ✨`,
-          shareText: `I became the ${hamsterName(key)} 🐹 ${window.location.origin}`,
+          shareText: `I became the ${hamsterName(key)} 🐹 ${window.location.origin}${BASE_PATH}`,
         });
       },
       "image/jpeg",
@@ -484,7 +485,7 @@ export default function CameraPage() {
     canvas.height = Math.round(720 * CARD_ASPECT);
     const ctx = canvas.getContext("2d")!;
     const fonts = getShareFonts();
-    const host = window.location.host;
+    const host = `${window.location.host}${BASE_PATH}`;
     const draw = () =>
       drawMatchCard(ctx, canvas.width, {
         fonts,
@@ -530,7 +531,7 @@ export default function CameraPage() {
       blob,
       filename: `cursed-hamster.${type === "video/mp4" ? "mp4" : "webm"}`,
       heading: "Your hamster clip 🎬",
-      shareText: `I became the hamster 🐹 ${window.location.origin}`,
+      shareText: `I became the hamster 🐹 ${window.location.origin}${BASE_PATH}`,
     });
   }
 

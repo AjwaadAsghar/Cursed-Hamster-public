@@ -1,5 +1,7 @@
 // Ported 1:1 from the Python main.py gesture-detection logic.
 
+import { withBase } from "./site";
+
 export type Point = { x: number; y: number; z?: number; visibility?: number };
 
 export const GESTURE_GUIDE: { key: string; doThis: string; youGet: string }[] = [
@@ -74,26 +76,26 @@ export const GESTURE_GUIDE: { key: string; doThis: string; youGet: string }[] = 
 ];
 
 export const MEMES: Record<string, string> = {
-  default: "/memes/poker_face.jpg",
-  thumbs_up: "/memes/thumbs_up.jpg",
-  thumbs_down: "/memes/thumbs_down.jpg",
-  side_eye: "/memes/side_eye.jpg",
-  fist_by_head: "/memes/fist_by_head.jpg",
-  two_hands: "/memes/two_hands.jpg",
-  glasses: "/memes/glasses.jpg",
-  bicep: "/memes/bicep.jpg",
-  cross_arms: "/memes/cross_arms.jpg",
-  finger_mouth: "/memes/finger_mouth.jpg",
-  nerd: "/memes/nerd.jpg",
-  shy: "/memes/shy.jpg",
-  thinking: "/memes/thinking.jpg",
-  hug: "/memes/hug.jpg",
-  sad: "/memes/sad.jpg",
-  finger_gun: "/memes/finger_gun.jpg",
-  tongue_out: "/memes/tongue_out.jpg",
-  v_sign: "/memes/v_sign.jpg",
-  high_five: "/memes/high_five.jpg",
-  kiss: "/memes/kiss.jpg",
+  default: withBase("/memes/poker_face.jpg"),
+  thumbs_up: withBase("/memes/thumbs_up.jpg"),
+  thumbs_down: withBase("/memes/thumbs_down.jpg"),
+  side_eye: withBase("/memes/side_eye.jpg"),
+  fist_by_head: withBase("/memes/fist_by_head.jpg"),
+  two_hands: withBase("/memes/two_hands.jpg"),
+  glasses: withBase("/memes/glasses.jpg"),
+  bicep: withBase("/memes/bicep.jpg"),
+  cross_arms: withBase("/memes/cross_arms.jpg"),
+  finger_mouth: withBase("/memes/finger_mouth.jpg"),
+  nerd: withBase("/memes/nerd.jpg"),
+  shy: withBase("/memes/shy.jpg"),
+  thinking: withBase("/memes/thinking.jpg"),
+  hug: withBase("/memes/hug.jpg"),
+  sad: withBase("/memes/sad.jpg"),
+  finger_gun: withBase("/memes/finger_gun.jpg"),
+  tongue_out: withBase("/memes/tongue_out.jpg"),
+  v_sign: withBase("/memes/v_sign.jpg"),
+  high_five: withBase("/memes/high_five.jpg"),
+  kiss: withBase("/memes/kiss.jpg"),
 };
 
 export const YAW_THRESHOLD_DEG = 18;
