@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { HAMSTERS, hamsterPath } from "../lib/hamsters";
+import { TOOLBOX_NAME, TOOLBOX_URL } from "../lib/site";
 
 // Crawlable internal links to every hamster page, on every content page.
 export default function SiteFooter() {
@@ -37,7 +38,11 @@ export default function SiteFooter() {
         <div className="flex flex-col gap-3 border-t border-pink-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-pink-950/55">
             Cursed Hamster is a free hamster meme webcam filter. It runs entirely in your browser; your
-            camera is never uploaded.
+            camera is never uploaded. Part of{" "}
+            <a href={TOOLBOX_URL} className="font-semibold text-pink-900/80 underline hover:text-pink-700">
+              {TOOLBOX_NAME}
+            </a>
+            , free tools that run in your browser.
           </p>
           <nav aria-label="Legal" className="flex shrink-0 gap-4 text-xs font-semibold text-pink-900/70">
             <Link href="/about" className="py-2 hover:text-pink-700">

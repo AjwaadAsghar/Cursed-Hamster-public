@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import JsonLd from "./JsonLd";
 import SiteFooter from "./SiteFooter";
-import { SITE_NAME, absoluteUrl } from "../lib/site";
+import { SITE_NAME, TOOLBOX_NAME, TOOLBOX_URL, absoluteUrl } from "../lib/site";
 
 // Shared shell for text pages (about, privacy, terms): breadcrumb, heading,
 // readable column, footer.
@@ -36,6 +36,10 @@ export default function ContentPage({
       <JsonLd data={breadcrumbs} />
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-8 sm:px-6 sm:py-12">
         <nav aria-label="Breadcrumb" className="text-sm font-medium text-pink-900/70">
+          <a href={TOOLBOX_URL} className="inline-block py-1.5 hover:text-pink-700 hover:underline">
+            {TOOLBOX_NAME}
+          </a>{" "}
+          ›{" "}
           <Link href="/" className="inline-block py-1.5 hover:text-pink-700 hover:underline">
             {SITE_NAME}
           </Link>{" "}

@@ -14,10 +14,14 @@ export function withBase(path: string): string {
 }
 
 export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? `https://ajtoolbox.com${BASE_PATH}`
+  process.env.NEXT_PUBLIC_SITE_URL ?? `https://www.ajtoolbox.com${BASE_PATH}`
 ).replace(/\/$/, "");
 
 export const SITE_NAME = "Cursed Hamster";
+
+// The parent site. A plain <a>, not <Link>: <Link> would prepend the basePath.
+export const TOOLBOX_NAME = "AJ Toolbox";
+export const TOOLBOX_URL = new URL(SITE_URL).origin;
 
 export const CONTACT_EMAIL = "asgharajwaad@gmail.com";
 

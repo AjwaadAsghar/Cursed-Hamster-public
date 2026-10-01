@@ -4,7 +4,7 @@ import PrefetchModels from "./components/PrefetchModels";
 import JsonLd from "./components/JsonLd";
 import SiteFooter from "./components/SiteFooter";
 import { HAMSTERS, hamsterPath } from "./lib/hamsters";
-import { withBase } from "./lib/site";
+import { TOOLBOX_NAME, TOOLBOX_URL, withBase } from "./lib/site";
 
 const HAMSTER_COUNT = HAMSTERS.length;
 
@@ -46,7 +46,7 @@ const faqJsonLd = {
 };
 
 const POLAROIDS = [
-  { src: withBase("/memes/hug.jpg"), top: "5%", left: "3%", rotate: -12, size: 132 },
+  { src: withBase("/memes/hug.jpg"), top: "11%", left: "3%", rotate: -12, size: 132 },
   { src: withBase("/memes/thumbs_up.jpg"), top: "9%", right: "4%", rotate: 10, size: 116 },
   { src: withBase("/memes/thinking.jpg"), bottom: "12%", left: "2%", rotate: 8, size: 124 },
   { src: withBase("/memes/poker_face.jpg"), bottom: "5%", right: "3%", rotate: -8, size: 136 },
@@ -74,6 +74,13 @@ export default function Home() {
     >
       <FloatingEmojis />
       <PrefetchModels />
+
+      <a
+        href={TOOLBOX_URL}
+        className="absolute left-4 top-4 z-20 flex items-center gap-1 rounded-full bg-white/55 px-4 py-1.5 text-sm font-semibold text-pink-900/80 shadow-sm backdrop-blur transition-colors hover:bg-white/80 hover:text-pink-900 sm:left-6 sm:top-6"
+      >
+        &larr; {TOOLBOX_NAME}
+      </a>
 
       {/* Soft glow behind the hero */}
       <div

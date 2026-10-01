@@ -22,7 +22,7 @@ const nextConfig: NextConfig = {
   },
   // Old links to the bare vercel.app deployment move to the real address.
   async redirects() {
-    const target = `https://ajtoolbox.com${BASE_PATH}`;
+    const target = `https://www.ajtoolbox.com${BASE_PATH}`;
     return [
       { source: "/", destination: target, basePath: false, permanent: true },
       {

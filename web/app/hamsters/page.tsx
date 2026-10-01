@@ -4,7 +4,7 @@ import JsonLd from "../components/JsonLd";
 import SiteFooter from "../components/SiteFooter";
 import { HAMSTERS, hamsterPath } from "../lib/hamsters";
 import { pageMetadata } from "../lib/seo";
-import { SITE_NAME, absoluteUrl } from "../lib/site";
+import { SITE_NAME, TOOLBOX_NAME, TOOLBOX_URL, absoluteUrl } from "../lib/site";
 
 export const metadata: Metadata = pageMetadata({
   title: `All ${HAMSTERS.length} Cursed Hamster Memes`,
@@ -52,6 +52,10 @@ export default function HamstersPage() {
       <JsonLd data={jsonLd} />
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-8 sm:px-6 sm:py-12">
         <nav aria-label="Breadcrumb" className="text-sm font-medium text-pink-900/70">
+          <a href={TOOLBOX_URL} className="inline-block py-1.5 hover:text-pink-700 hover:underline">
+            {TOOLBOX_NAME}
+          </a>{" "}
+          ›{" "}
           <Link href="/" className="inline-block py-1.5 hover:text-pink-700 hover:underline">
             {SITE_NAME}
           </Link>{" "}

@@ -5,7 +5,7 @@ import JsonLd from "../../components/JsonLd";
 import SiteFooter from "../../components/SiteFooter";
 import { HAMSTERS, getHamster, hamsterPath } from "../../lib/hamsters";
 import { pageMetadata } from "../../lib/seo";
-import { SITE_NAME, absoluteUrl } from "../../lib/site";
+import { SITE_NAME, TOOLBOX_NAME, TOOLBOX_URL, absoluteUrl } from "../../lib/site";
 
 export const dynamicParams = false;
 
@@ -68,6 +68,12 @@ export default async function HamsterPage({ params }: PageProps<"/hamsters/[slug
       <main className="mx-auto w-full max-w-5xl flex-1 px-5 py-8 sm:px-6 sm:py-12">
         <nav aria-label="Breadcrumb" className="text-sm font-medium text-pink-900/70">
           <ol className="flex flex-wrap items-center gap-1.5">
+            <li>
+              <a href={TOOLBOX_URL} className="inline-block py-1.5 hover:text-pink-700 hover:underline">
+                {TOOLBOX_NAME}
+              </a>
+            </li>
+            <li aria-hidden="true">›</li>
             <li>
               <Link href="/" className="inline-block py-1.5 hover:text-pink-700 hover:underline">
                 {SITE_NAME}
